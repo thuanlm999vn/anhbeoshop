@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý máy tính phòng họp</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .computer-card {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 25px;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .computer-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .computer-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .computer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .computer-card.available {
+            border-color: #28a745;
+            background: linear-gradient(145deg, #d4edda, #c3e6cb);
+        }
+
+        .computer-card.in-use {
+            border-color: #dc3545;
+            background: linear-gradient(145deg, #f8d7da, #f5c6cb);
+        }
+
+        .computer-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-available {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-in-use {
+            background: #dc3545;
+            color: white;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #007bff;
+        }
+
+        .form-section h3 {
+            color: #007bff;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.2);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .history-section {
+            margin-top: 40px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .history-table th {
+            background: linear-gradient(135deg, #343a40, #495057);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .history-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .history-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-color: #28a745;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #dc3545;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .current-time {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="current-time" id="currentTime"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🖥️ Quản lý máy tính phòng họp</h1>
+            <p>Hệ thống theo dõi và quản lý việc sử dụng máy tính</p>
+        </div>
+
+        <div class="main-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalBorrows">0</div>
+                    <div>Tổng lượt mượn</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="availableCount">2</div>
+                    <div>Máy khả dụng</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="inUseCount">0</div>
+                    <div>Đang sử dụng</div>
+                </div>
+            </div>
+
+            <div class="status-grid">
+                <div class="computer-card available" id="computer1">
+                    <div class="computer-title">
+                        💻 Máy tính #1
+                        <span class="status-badge status-available">Sẵn sàng</span>
+                    </div>
+                    <div id="computer1-info">
+                        <p><strong>Trạng thái:</strong> Có thể sử dụng</p>
+                        <p><strong>Người dùng:</strong> Không có</p>
+                        <p><strong>Thời gian:</strong> --</p>
+                    </div>
+                </div>
+
+                <div class="computer-card available" id="computer2">
+                    <div class="computer-title">
+                        🖥️ Máy tính #2
+                        <span class="status-badge status-available">Sẵn sàng</span>
+                    </div>
+                    <div id="computer2-info">
+                        <p><strong>Trạng thái:</strong> Có thể sử dụng</p>
+                        <p><strong>Người dùng:</strong> Không có</p>
+                        <p><strong>Thời gian:</strong> --</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <div class="form-section">
+                <h3>📝 Mượn máy tính</h3>
+                <form id="borrowForm">
+                    <div class="form-group">
+                        <label for="computerSelect">Chọn máy tính:</label>
+                        <select id="computerSelect" class="form-control" required>
+                            <option value="">-- Chọn máy tính --</option>
+                            <option value="1">Máy tính #1</option>
+                            <option value="2">Máy tính #2</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="borrowerName">Họ tên người mượn:</label>
+                        <input type="text" id="borrowerName" class="form-control" required placeholder="Nhập họ tên đầy đủ">
+                    </div>
+                    <div class="form-group">
+                        <label for="borrowerDepartment">Phòng ban:</label>
+                        <input type="text" id="borrowerDepartment" class="form-control" required placeholder="Nhập tên phòng ban">
+                    </div>
+                    <div class="form-group">
+                        <label for="purpose">Mục đích sử dụng:</label>
+                        <textarea id="purpose" class="form-control" rows="3" placeholder="Mô tả ngắn gọn mục đích sử dụng"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">🔒 Mượn máy tính</button>
+                </form>
+            </div>
+
+            <div class="form-section">
+                <h3>📤 Trả máy tính</h3>
+                <form id="returnForm">
+                    <div class="form-group">
+                        <label for="returnComputerSelect">Chọn máy tính cần trả:</label>
+                        <select id="returnComputerSelect" class="form-control" required>
+                            <option value="">-- Chọn máy tính --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="returnNotes">Ghi chú (tùy chọn):</label>
+                        <textarea id="returnNotes" class="form-control" rows="2" placeholder="Ghi chú tình trạng máy tính khi trả"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">✅ Trả máy tính</button>
+                </form>
+            </div>
+
+            <div class="form-section">
+                <h3>⚙️ Quản lý dữ liệu</h3>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                    <button type="button" class="btn btn-primary" onclick="exportData()" title="Tải dữ liệu về máy">
+                        💾 Xuất dữ liệu
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="resetData()" title="Khôi phục dữ liệu mẫu">
+                        🔄 Reset dữ liệu mẫu
+                    </button>
+                    <span style="color: #6c757d; font-size: 0.9em;">
+                        💡 Dữ liệu được lưu tự động khi có thay đổi
+                    </span>
+                </div>
+            </div>
+                <form id="returnForm">
+                    <div class="form-group">
+                        <label for="returnComputerSelect">Chọn máy tính cần trả:</label>
+                        <select id="returnComputerSelect" class="form-control" required>
+                            <option value="">-- Chọn máy tính --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="returnNotes">Ghi chú (tùy chọn):</label>
+                        <textarea id="returnNotes" class="form-control" rows="2" placeholder="Ghi chú tình trạng máy tính khi trả"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">✅ Trả máy tính</button>
+                </form>
+            </div>
+
+            <div class="history-section">
+                <h3>📊 Lịch sử sử dụng (10 lần gần nhất)</h3>
+                <div style="background: #e7f3ff; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #007bff;">
+                    <p><strong>💡 Thông tin:</strong> Bảng dưới đây hiển thị 10 lần mượn máy tính gần nhất. Các bản ghi đang sử dụng được tô sáng màu vàng.</p>
+                </div>
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Máy tính</th>
+                            <th>Người mượn</th>
+                            <th>Phòng ban</th>
+                            <th>Thời gian mượn</th>
+                            <th>Thời gian trả</th>
+                            <th>Mục đích</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- Lịch sử sẽ được thêm vào đây -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dữ liệu máy tính với trạng thái hiện tại
+        let defaultComputers = {
+            1: { 
+                available: false, 
+                borrower: "Nguyễn Văn Minh", 
+                borrowTime: "01/07/2025 14:30:15", 
+                purpose: "Chuẩn bị thuyết trình dự án Q3", 
+                department: "Phòng Kinh doanh" 
+            },
+            2: { 
+                available: true, 
+                borrower: null, 
+                borrowTime: null, 
+                purpose: null, 
+                department: null 
+            }
+        };
+
+        // Lịch sử sử dụng với dữ liệu mẫu (15 bản ghi để test)
+        let defaultHistory = [
+            {
+                computerId: "1",
+                borrower: "Trần Thị Lan",
+                department: "Phòng Nhân sự",
+                borrowTime: "28/06/2025 09:15:30",
+                returnTime: "28/06/2025 11:45:20",
+                purpose: "Tạo báo cáo tuyển dụng tháng 6"
+            },
+            {
+                computerId: "2",
+                borrower: "Lê Văn Đức",
+                department: "Phòng Kế toán",
+                borrowTime: "28/06/2025 13:20:10",
+                returnTime: "28/06/2025 16:30:45",
+                purpose: "Lập báo cáo tài chính"
+            },
+            {
+                computerId: "1",
+                borrower: "Phạm Thị Mai",
+                department: "Phòng Marketing",
+                borrowTime: "29/06/2025 08:45:25",
+                returnTime: "29/06/2025 12:15:10",
+                purpose: "Thiết kế poster quảng cáo"
+            },
+            {
+                computerId: "2",
+                borrower: "Hoàng Văn Nam",
+                department: "Phòng IT",
+                borrowTime: "29/06/2025 14:10:30",
+                returnTime: "29/06/2025 17:20:15",
+                purpose: "Cập nhật hệ thống quản lý"
+            },
+            {
+                computerId: "1",
+                borrower: "Vũ Thị Hoa",
+                department: "Phòng Hành chính",
+                borrowTime: "30/06/2025 09:30:45",
+                returnTime: "30/06/2025 11:15:20",
+                purpose: "Soạn thảo quy định nội bộ"
+            },
+            {
+                computerId: "2",
+                borrower: "Đỗ Văn Tuấn",
+                department: "Phòng Kinh doanh",
+                borrowTime: "30/06/2025 13:45:10",
+                returnTime: "30/06/2025 15:30:25",
+                purpose: "Chuẩn bị bản demo sản phẩm"
+            },
+            {
+                computerId: "1",
+                borrower: "Ngô Thị Linh",
+                department: "Phòng Kế toán",
+                borrowTime: "30/06/2025 16:00:15",
+                returnTime: "30/06/2025 18:45:30",
+                purpose: "Đối soát công nợ cuối tháng"
+            },
+            {
+                computerId: "2",
+                borrower: "Bùi Văn Khang",
+                department: "Phòng Nhân sự",
+                borrowTime: "01/07/2025 08:15:20",
+                returnTime: "01/07/2025 10:30:45",
+                purpose: "Cập nhật hồ sơ nhân viên"
+            },
+            {
+                computerId: "1",
+                borrower: "Lý Thị Trang",
+                department: "Phòng Marketing",
+                borrowTime: "01/07/2025 11:20:10",
+                returnTime: "01/07/2025 13:15:35",
+                purpose: "Chỉnh sửa video quảng cáo"
+            },
+            {
+                computerId: "2",
+                borrower: "Đinh Văn Hùng",
+                department: "Phòng IT",
+                borrowTime: "01/07/2025 13:45:25",
+                returnTime: "01/07/2025 14:20:10",
+                purpose: "Kiểm tra bảo mật hệ thống"
+            },
+            // Bản ghi hiện tại (đang sử dụng)
+            {
+                computerId: "1",
+                borrower: "Nguyễn Văn Minh",
+                department: "Phòng Kinh doanh",
+                borrowTime: "01/07/2025 14:30:15",
+                returnTime: null,
+                purpose: "Chuẩn bị thuyết trình dự án Q3"
+            },
+            // Thêm vài bản ghi cũ hơn để test việc giới hạn hiển thị
+            {
+                computerId: "2",
+                borrower: "Cũ Test 1",
+                department: "Test",
+                borrowTime: "25/06/2025 10:00:00",
+                returnTime: "25/06/2025 12:00:00",
+                purpose: "Test cũ"
+            },
+            {
+                computerId: "1",
+                borrower: "Cũ Test 2",
+                department: "Test",
+                borrowTime: "24/06/2025 10:00:00",
+                returnTime: "24/06/2025 12:00:00",
+                purpose: "Test cũ"
+            },
+            {
+                computerId: "2",
+                borrower: "Cũ Test 3",
+                department: "Test",
+                borrowTime: "23/06/2025 10:00:00",
+                returnTime: "23/06/2025 12:00:00",
+                purpose: "Test cũ"
+            },
+            {
+                computerId: "1",
+                borrower: "Cũ Test 4",
+                department: "Test",
+                borrowTime: "22/06/2025 10:00:00",
+                returnTime: "22/06/2025 12:00:00",
+                purpose: "Test cũ"
+            }
+        ];
+
+        // Khởi tạo dữ liệu từ cache hoặc dữ liệu mặc định
+        let computers = loadData('computers') || defaultComputers;
+        let history = loadData('history') || defaultHistory;
+        let totalBorrows = loadData('totalBorrows') || defaultHistory.length;
+
+        // Hàm lưu dữ liệu vào bộ nhớ trình duyệt
+        function saveData(key, data) {
+            try {
+                // Sử dụng sessionStorage thay vì localStorage để tránh lỗi
+                const dataStr = JSON.stringify(data);
+                
+                // Sử dụng cookies làm backup
+                document.cookie = `${key}=${encodeURIComponent(dataStr)}; path=/; max-age=86400`; // 24 giờ
+                
+                // Lưu vào biến toàn cục để backup
+                window[`backup_${key}`] = data;
+                
+                return true;
+            } catch (error) {
+                console.warn('Không thể lưu dữ liệu:', error);
+                return false;
+            }
+        }
+
+        // Hàm tải dữ liệu từ bộ nhớ trình duyệt
+        function loadData(key) {
+            try {
+                // Thử tải từ biến toàn cục trước
+                if (window[`backup_${key}`]) {
+                    return window[`backup_${key}`];
+                }
+
+                // Thử tải từ cookies
+                const cookies = document.cookie.split(';');
+                const cookie = cookies.find(c => c.trim().startsWith(`${key}=`));
+                if (cookie) {
+                    const value = cookie.split('=')[1];
+                    return JSON.parse(decodeURIComponent(value));
+                }
+
+                return null;
+            } catch (error) {
+                console.warn('Không thể tải dữ liệu:', error);
+                return null;
+            }
+        }
+
+        // Hàm lưu tất cả dữ liệu
+        function saveAllData() {
+            saveData('computers', computers);
+            saveData('history', history);
+            saveData('totalBorrows', totalBorrows);
+        }
+
+        // Cập nhật thời gian hiện tại
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        // Hiển thị thông báo
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Cập nhật giao diện
+        function updateInterface() {
+            // Cập nhật trạng thái máy tính
+            for (let id in computers) {
+                const computer = computers[id];
+                const card = document.getElementById(`computer${id}`);
+                const info = document.getElementById(`computer${id}-info`);
+                const badge = card.querySelector('.status-badge');
+
+                if (computer.available) {
+                    card.className = 'computer-card available';
+                    badge.className = 'status-badge status-available';
+                    badge.textContent = 'Sẵn sàng';
+                    info.innerHTML = `
+                        <p><strong>Trạng thái:</strong> Có thể sử dụng</p>
+                        <p><strong>Người dùng:</strong> Không có</p>
+                        <p><strong>Thời gian:</strong> --</p>
+                    `;
+                } else {
+                    card.className = 'computer-card in-use';
+                    badge.className = 'status-badge status-in-use';
+                    badge.textContent = 'Đang dùng';
+                    info.innerHTML = `
+                        <p><strong>Trạng thái:</strong> Đang được sử dụng</p>
+                        <p><strong>Người dùng:</strong> ${computer.borrower}</p>
+                        <p><strong>Phòng ban:</strong> ${computer.department}</p>
+                        <p><strong>Thời gian mượn:</strong> ${computer.borrowTime}</p>
+                        <p><strong>Mục đích:</strong> ${computer.purpose || 'Không có'}</p>
+                    `;
+                }
+            }
+
+            // Cập nhật dropdown trả máy
+            const returnSelect = document.getElementById('returnComputerSelect');
+            returnSelect.innerHTML = '<option value="">-- Chọn máy tính --</option>';
+            for (let id in computers) {
+                if (!computers[id].available) {
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = `Máy tính #${id} (${computers[id].borrower})`;
+                    returnSelect.appendChild(option);
+                }
+            }
+
+            // Cập nhật dropdown mượn máy
+            const borrowSelect = document.getElementById('computerSelect');
+            const currentValue = borrowSelect.value;
+            borrowSelect.innerHTML = '<option value="">-- Chọn máy tính --</option>';
+            for (let id in computers) {
+                if (computers[id].available) {
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = `Máy tính #${id}`;
+                    borrowSelect.appendChild(option);
+                }
+            }
+
+            // Cập nhật thống kê
+            const availableCount = Object.values(computers).filter(c => c.available).length;
+            const inUseCount = Object.values(computers).filter(c => !c.available).length;
+            
+            document.getElementById('totalBorrows').textContent = totalBorrows;
+            document.getElementById('availableCount').textContent = availableCount;
+            document.getElementById('inUseCount').textContent = inUseCount;
+
+            // Cập nhật bảng lịch sử
+            updateHistoryTable();
+        }
+
+        // Cập nhật bảng lịch sử - chỉ hiển thị 10 bản ghi gần nhất
+        function updateHistoryTable() {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+            
+            // Sắp xếp lịch sử theo thời gian mới nhất và chỉ lấy 10 bản ghi đầu
+            const sortedHistory = [...history]
+                .sort((a, b) => {
+                    // Chuyển đổi thời gian để sắp xếp chính xác
+                    const timeA = new Date(a.borrowTime.split(' ')[0].split('/').reverse().join('-') + ' ' + a.borrowTime.split(' ')[1]);
+                    const timeB = new Date(b.borrowTime.split(' ')[0].split('/').reverse().join('-') + ' ' + b.borrowTime.split(' ')[1]);
+                    return timeB - timeA; // Sắp xếp từ mới nhất đến cũ nhất
+                })
+                .slice(0, 10); // Chỉ lấy 10 bản ghi đầu
+            
+            sortedHistory.forEach((record, index) => {
+                const row = document.createElement('tr');
+                // Thêm class để highlight bản ghi đang sử dụng
+                if (!record.returnTime) {
+                    row.style.backgroundColor = '#fff3cd';
+                    row.style.fontWeight = 'bold';
+                }
+                
+                row.innerHTML = `
+                    <td>💻 Máy tính #${record.computerId}</td>
+                    <td>${record.borrower}</td>
+                    <td>${record.department}</td>
+                    <td>${record.borrowTime}</td>
+                    <td>${record.returnTime || '🔄 Đang sử dụng'}</td>
+                    <td>${record.purpose || 'Không có'}</td>
+                    <td>
+                        ${record.returnTime ? 
+                            '<span style="color: #28a745; font-weight: bold;">✅ Đã trả</span>' : 
+                            '<span style="color: #dc3545; font-weight: bold;">🔄 Đang sử dụng</span>'
+                        }
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Thêm dòng thông báo nếu có nhiều hơn 10 bản ghi
+            if (history.length > 10) {
+                const infoRow = document.createElement('tr');
+                infoRow.style.backgroundColor = '#e9ecef';
+                infoRow.style.fontStyle = 'italic';
+                infoRow.innerHTML = `
+                    <td colspan="7" style="text-align: center; padding: 15px;">
+                        📋 Hiển thị 10 lần mượn gần nhất. Tổng cộng có ${history.length} lần mượn trong hệ thống.
+                    </td>
+                `;
+                tbody.appendChild(infoRow);
+            }
+        }
+
+        // Xử lý form mượn máy
+        document.getElementById('borrowForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const computerId = document.getElementById('computerSelect').value;
+            const borrowerName = document.getElementById('borrowerName').value.trim();
+            const department = document.getElementById('borrowerDepartment').value.trim();
+            const purpose = document.getElementById('purpose').value.trim();
+
+            if (!computerId || !borrowerName || !department) {
+                showAlert('Vui lòng điền đầy đủ thông tin bắt buộc!', 'danger');
+                return;
+            }
+
+            if (!computers[computerId].available) {
+                showAlert('Máy tính này đang được sử dụng!', 'danger');
+                return;
+            }
+
+            // Cập nhật trạng thái máy tính
+            const borrowTime = new Date().toLocaleString('vi-VN');
+            computers[computerId] = {
+                available: false,
+                borrower: borrowerName,
+                borrowTime: borrowTime,
+                purpose: purpose,
+                department: department
+            };
+
+            // Thêm vào lịch sử
+            history.push({
+                computerId: computerId,
+                borrower: borrowerName,
+                department: department,
+                borrowTime: borrowTime,
+                purpose: purpose,
+                returnTime: null
+            });
+
+            totalBorrows++;
+
+            // Reset form
+            this.reset();
+            
+            // Lưu dữ liệu sau khi thay đổi
+            saveAllData();
+            
+            showAlert(`Đã ghi nhận mượn máy tính #${computerId} cho ${borrowerName}`, 'success');
+            updateInterface();
+        });
+
+        // Xử lý form trả máy
+        document.getElementById('returnForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const computerId = document.getElementById('returnComputerSelect').value;
+            const notes = document.getElementById('returnNotes').value.trim();
+
+            if (!computerId) {
+                showAlert('Vui lòng chọn máy tính cần trả!', 'danger');
+                return;
+            }
+
+            // Cập nhật trạng thái máy tính
+            const borrowerName = computers[computerId].borrower;
+            computers[computerId] = {
+                available: true,
+                borrower: null,
+                borrowTime: null,
+                purpose: null,
+                department: null
+            };
+
+            // Cập nhật lịch sử
+            const returnTime = new Date().toLocaleString('vi-VN');
+            const historyRecord = history.find(record => 
+                record.computerId === computerId && 
+                record.borrower === borrowerName && 
+                !record.returnTime
+            );
+            
+            if (historyRecord) {
+                historyRecord.returnTime = returnTime;
+                if (notes) {
+                    historyRecord.notes = notes;
+                }
+            }
+
+            // Reset form
+            this.reset();
+            
+            // Lưu dữ liệu sau khi thay đổi
+            saveAllData();
+            
+            showAlert(`Đã ghi nhận trả máy tính #${computerId} từ ${borrowerName}`, 'success');
+            updateInterface();
+        });
+
+        // Khởi tạo
+        function init() {
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            updateInterface();
+            
+            // Lưu dữ liệu ban đầu
+            saveAllData();
+            
+            // Hiển thị thông báo về tình trạng lưu dữ liệu
+            setTimeout(() => {
+                showAlert('✅ Hệ thống đã sẵn sàng! Dữ liệu sẽ được lưu tự động khi có thay đổi.', 'success');
+            }, 1000);
+        }
+
+        // Bắt đầu ứng dụng
+        init();
+
+        // Thêm các hàm quản lý dữ liệu
+        function exportData() {
+            const exportData = {
+                computers: computers,
+                history: history,
+                totalBorrows: totalBorrows,
+                exportTime: new Date().toLocaleString('vi-VN')
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `computer-checksheet-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            showAlert('📥 Đã xuất dữ liệu thành công!', 'success');
+        }
+
+        function resetData() {
+            if (confirm('⚠️ Bạn có chắc muốn khôi phục dữ liệu mẫu? Tất cả dữ liệu hiện tại sẽ bị xóa!')) {
+                computers = JSON.parse(JSON.stringify(defaultComputers));
+                history = JSON.parse(JSON.stringify(defaultHistory));
+                totalBorrows = defaultHistory.length;
+                
+                saveAllData();
+                updateInterface();
+                
+                showAlert('🔄 Đã khôi phục dữ liệu mẫu thành công!', 'success');
+            }
+        }
+    </script>
+</body>
+</html>
