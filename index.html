@@ -792,12 +792,60 @@
             <button class="btn-secondary" onclick="closeModal('login-modal')">Hủy</button>
             <button class="btn-primary" onclick="login()">Đăng nhập</button>
         </div>
-        <p style="margin-top: 20px; text-align: center; color: #666; font-size: 13px;">
+        <p style="margin-top: 20px; text-align: center; color: #666; font-size: 13px;"><p style="margin-top: 15px; text-align:center;">
+    Chưa có tài khoản? 
+    <a href="#" onclick="showRegisterForm()" style="color:#667eea; font-weight:600;">Đăng ký ngay</a>
+</p>
+
+
             <strong>Tài khoản Admin:</strong> admin@shop.com / admin123<br>
             <strong>Tài khoản User:</strong> user@shop.com / user123
         </p>
     </div>
 </div>
+<!-- Register Modal -->
+<div class="modal" id="register-modal" onclick="closeModalOnOutside(event, 'register-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3>🆕 Đăng ký tài khoản</h3>
+
+        <div class="form-group">
+            <label>Họ và tên</label>
+            <input type="text" id="reg-name" placeholder="Nhập họ tên">
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="reg-email" placeholder="Nhập email">
+        </div>
+
+        <div class="form-group">
+            <label>Mật khẩu</label>
+            <input type="password" id="reg-password" placeholder="Nhập mật khẩu">
+        </div>
+
+        <div class="form-group">
+            <label>Số điện thoại</label>
+            <input type="text" id="reg-phone" placeholder="Nhập số điện thoại">
+        </div>
+
+        <div class="form-group">
+            <label>Địa chỉ</label>
+            <textarea id="reg-address" rows="2" placeholder="Nhập địa chỉ"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn-secondary" onclick="closeModal('register-modal')">Hủy</button>
+            <button class="btn-primary" onclick="registerAccount()">Đăng ký</button>
+        </div>
+
+        <p style="margin-top: 15px; text-align:center;">
+            Đã có tài khoản? 
+            <a href="#" onclick="switchToLogin()" style="color:#667eea; font-weight:600;">Đăng nhập</a>
+        </p>
+    </div>
+</div>
+
+
 
 <!-- Add Product Modal -->
 <div class="modal" id="add-product-modal" onclick="closeModalOnOutside(event, 'add-product-modal')">
@@ -960,6 +1008,7 @@ const accounts = {
         role: 'user'
     }
 };
+
 
 // Hiển thị sản phẩm
 function displayProducts() {
@@ -1254,6 +1303,49 @@ document.addEventListener('click', function(event) {
         dropdown.classList.remove('active');
     }
 });
+// Mở form đăng ký
+function showRegisterForm() {
+    closeModal('login-modal');
+    document.getElementById('register-modal').classList.add('active');
+}
+
+// Chuyển ngược về đăng nhập
+function switchToLogin() {
+    closeModal('register-modal');
+    showLoginModal();
+}
+
+// Xử lý đăng ký tài khoản
+function registerAccount() {
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value.trim();
+    const phone = document.getElementById('reg-phone').value.trim();
+    const address = document.getElementById('reg-address').value.trim();
+
+    if (!name || !email || !password || !phone || !address) {
+        alert('Vui lòng nhập đầy đủ thông tin!');
+        return;
+    }
+
+    if (accounts[email]) {
+        alert('Email này đã tồn tại! Vui lòng dùng email khác.');
+        return;
+    }
+
+    // Tạo tài khoản mới
+    accounts[email] = {
+        name: name,
+        password: password,
+        phone: phone,
+        address: address,
+        role: 'user'
+    };
+
+    alert('🎉 Đăng ký thành công! Bạn có thể đăng nhập ngay.');
+    closeModal('register-modal');
+    showLoginModal();
+}
 
 // Khởi tạo
 displayProducts();
