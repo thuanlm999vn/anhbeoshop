@@ -791,33 +791,6 @@
         <p style="margin-top: 10px; opacity: 0.8;">Chính sách bảo mật | Điều khoản dịch vụ | Hỗ trợ khách hàng</p>
     </footer>
 
-    <div class="modal" id="login-modal" onclick="closeModalOnOutside(event, 'login-modal')">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <h3>🔐 Đăng nhập</h3>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="login-email" placeholder="Nhập email của bạn" value="admin@shop.com">
-            </div>
-            <div class="form-group">
-                <label>Mật khẩu</label>
-                <input type="password" id="login-password" placeholder="Nhập mật khẩu" value="admin123">
-            </div>
-            <div class="form-actions">
-                <button class="btn-secondary" onclick="closeModal('login-modal')">Hủy</button>
-                <button class="btn-primary" onclick="login()">Đăng nhập</button>
-            </div>
-            <p style="margin-top: 20px; text-align: center; color: #666; font-size: 13px;">
-                <strong>Tài khoản Demo (Sẽ dùng tài khoản thật khi có Firebase):</strong><br>
-                <strong>Admin:</strong> admin@shop.com / admin123<br>
-                <strong>User:</strong> user@shop.com / user123
-            </p>
-            <p style="margin-top: 15px; text-align:center;">
-                Chưa có tài khoản? 
-                <a href="#" onclick="showRegisterForm()" style="color:#667eea; font-weight:600;">Đăng ký ngay</a>
-            </p>
-        </div>
-    </div>
-
     <div class="modal" id="register-modal" onclick="closeModalOnOutside(event, 'register-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h3>🆕 Đăng ký tài khoản</h3>
@@ -867,7 +840,7 @@
                 <label>Hình ảnh sản phẩm *</label>
                 <input type="file" id="product-image-file" accept="image/*" onchange="previewImage(event)" style="margin-bottom: 10px;">
                 <img id="image-preview" src="" alt="">
-                <input type="text" id="product-image" placeholder="Hoặc nhập URL hình ảnh (Ưu tiên URL khi upload)" style="margin-top: 10px;">
+                <input type="text" id="product-image" placeholder="Hoặc nhập URL hình ảnh" style="margin-top: 10px;">
             </div>
             <div class="form-group">
                 <label>Mô tả</label>
@@ -934,10 +907,9 @@
 
     <script>
         // ====================================================================
-        // KHAI BÁO VÀ KHỞI TẠO FIREBASE SDK (ĐÃ DÁN KHÓA THẬT CỦA DỰ ÁN TTTT-D1CE3)
+        // KHAI BÁO VÀ KHỞI TẠO FIREBASE SDK
         // ====================================================================
 
-        // Khóa Cấu hình ĐÃ LẤY TỪ DỰ ÁN TTTT-D1CE3
         const firebaseConfig = {
             apiKey: "AIzaSyDO2GQ_MQeQjl_Surl39ZwyKWofPJDyOCQ", 
             authDomain: "tttt-d1ce3.firebaseapp.com", 
@@ -948,28 +920,35 @@
             appId: "1:810071241126:web:c4db3d862704fa1ee9df67"
         };
 
-        // Khởi tạo Firebase và Database/Auth (Sử dụng cú pháp Firebase v8 để tương thích với CDN)
         let db, auth;
         try {
             firebase.initializeApp(firebaseConfig);
-            db = firebase.database(); // Khởi tạo Realtime Database
-            auth = firebase.auth();   // Khởi tạo Authentication
-            window.db = db; // Đưa vào window để sử dụng toàn cục
+            db = firebase.database();
+            auth = firebase.auth();
+            window.db = db;
             window.auth = auth;
-            console.log("Firebase đã khởi tạo thành công!");
+            console.log("✅ Firebase đã khởi tạo thành công!");
         } catch (e) {
-            console.error("LỖI KHỞI TẠO FIREBASE:", e);
-            alert("LỖI KẾT NỐI FIREBASE! Vui lòng kiểm tra lại 3 thẻ CDN và cấu hình trên.");
+            console.error("❌ LỖI KHỞI TẠO FIREBASE:", e);
+            alert("LỖI KẾT NỐI FIREBASE! Vui lòng kiểm tra lại cấu hình.");
         }
 
         // ====================================================================
-        // DỮ LIỆU VÀ BIẾN TOÀN CỤNG (ĐÃ THAY THẾ UID ADMIN)
+        // DỮ LIỆU VÀ BIẾN TOÀN CỤC
         // ====================================================================
 
-        let adminUID = "L9LYxwp220OXg0xkqZ0vyt9HgOD3"; // <--- UID ADMIN THẬT CỦA BẠN
-        let currentProducts = {}; // Lưu trữ sản phẩm từ Firebase
-        let currentCart = {}; // Lưu trữ giỏ hàng
-        let currentDetailProductId = null; // Thêm biến lưu ID sản phẩm đang xem chi tiết
+        const ADMIN_UID = "L9LYxwp220OXg0xkqZ0vyt9HgOD3"; // UID Admin thật
+        let currentProducts = {};
+        let currentCart = {};
+        let currentDetailProductId = null;
+
+        // ====================================================================
+        // HÀM KIỂM TRA QUYỀN ADMIN
+        // ====================================================================
+        
+        function isAdmin() {
+            return auth.currentUser && auth.currentUser.uid === ADMIN_UID;
+        }
 
         // ====================================================================
         // HÀM CHUNG: QUẢN LÝ GIAO DIỆN VÀ MODAL
@@ -987,11 +966,10 @@
                 return;
             }
 
-            currentDetailProductId = productId; // Lưu ID sản phẩm đang xem
+            currentDetailProductId = productId;
             document.getElementById('home-page').style.display = 'none';
             document.getElementById('detail-page').style.display = 'block';
             
-            // Hiển thị chi tiết sản phẩm
             document.getElementById('detail-name').innerText = product.name;
             document.getElementById('detail-price').innerText = formatCurrency(product.price);
             document.getElementById('detail-desc').innerText = product.description || "Đang cập nhật...";
@@ -999,7 +977,6 @@
             
             const specsList = document.getElementById('detail-specs');
             specsList.innerHTML = '';
-            // Kiểm tra và hiển thị thông số kỹ thuật (specs)
             if (product.specs && Array.isArray(product.specs)) {
                 product.specs.forEach(spec => {
                     const li = document.createElement('li');
@@ -1010,7 +987,6 @@
                 specsList.innerHTML = '<li>Không có thông số kỹ thuật</li>';
             }
 
-            // Gắn sự kiện thêm vào giỏ hàng cho nút chi tiết
             document.getElementById('btn-add-cart-detail').onclick = () => addToCart(productId);
         }
 
@@ -1048,11 +1024,15 @@
         }
 
         function showAddProductModal() {
+            if (!isAdmin()) {
+                alert("Bạn không có quyền thực hiện chức năng này!");
+                return;
+            }
             openModal('add-product-modal');
         }
 
         function showCart() {
-            renderCart(); // Cập nhật giỏ hàng trước khi hiển thị
+            renderCart();
             openModal('cart-modal');
         }
 
@@ -1071,29 +1051,26 @@
 
             auth.signInWithEmailAndPassword(email, password)
                 .then((userCredential) => {
-                    // Đăng nhập thành công
-                    console.log("Đăng nhập thành công:", userCredential.user.uid);
+                    console.log("✅ Đăng nhập thành công:", userCredential.user.uid);
                     closeModal('login-modal');
                 })
                 .catch((error) => {
                     alert(`Đăng nhập thất bại: ${error.message}`);
-                    console.error("LỖI ĐĂNG NHẬP:", error);
+                    console.error("❌ LỖI ĐĂNG NHẬP:", error);
                 });
         }
 
         function logout() {
             auth.signOut().then(() => {
                 alert("Đã đăng xuất thành công!");
-                // Giao diện sẽ được cập nhật nhờ hàm auth.onAuthStateChanged
                 showHome(); 
             }).catch((error) => {
-                console.error("LỖI ĐĂNG XUẤT:", error);
+                console.error("❌ LỖI ĐĂNG XUẤT:", error);
             });
         }
         
-        // HÀM ĐĂNG KÝ (TẠM THỜI CHƯA HOÀN THIỆN ĐẦY ĐỦ VÌ THIẾU LOGIC LƯU THÔNG TIN USER VÀO REALTIME DB)
         function registerAccount() {
-             alert("Chức năng đăng ký đang được hoàn thiện. Vui lòng sử dụng tài khoản demo để trải nghiệm!");
+             alert("Chức năng đăng ký đang được hoàn thiện. Vui lòng sử dụng tài khoản demo!");
         }
 
         function updateAuthUI(user) {
@@ -1101,44 +1078,38 @@
             const userInfoDiv = document.getElementById('user-info');
             const adminControls = document.getElementById('admin-controls');
 
-            // Cần xóa các sản phẩm cũ trước khi render lại với trạng thái admin mới
+            // Xóa và render lại tất cả sản phẩm khi trạng thái auth thay đổi
             document.getElementById('product-list').innerHTML = ''; 
-            // Tải lại toàn bộ sản phẩm (vì state admin có thể thay đổi)
-            db.ref('products').once('value').then(snapshot => {
-                currentProducts = snapshot.val() || {};
-                Object.keys(currentProducts).forEach(id => renderProduct(id, currentProducts[id]));
-            });
             
             if (user) {
-                // Đã đăng nhập
                 loginBtn.style.display = 'none';
                 userInfoDiv.style.display = 'flex';
 
                 const initial = (user.email.charAt(0) || 'A').toUpperCase();
                 document.getElementById('user-initial').innerText = initial;
 
-                // Kiểm tra Admin
-                if (user.uid === adminUID) {
+                if (isAdmin()) {
                     document.getElementById('user-name-display').innerText = "Admin";
                     document.getElementById('user-role-display').innerText = "Quản trị viên";
                     adminControls.classList.add('active');
-                    document.body.classList.add('admin-mode');
+                    console.log("✅ Chế độ Admin đã kích hoạt");
                 } else {
                     document.getElementById('user-name-display').innerText = user.email;
                     document.getElementById('user-role-display').innerText = "Khách hàng";
                     adminControls.classList.remove('active');
-                    document.body.classList.remove('admin-mode');
                 }
             } else {
-                // Chưa đăng nhập
                 loginBtn.style.display = 'block';
                 userInfoDiv.style.display = 'none';
                 adminControls.classList.remove('active');
-                document.body.classList.remove('admin-mode');
             }
+
+            // Render lại tất cả sản phẩm với trạng thái admin mới
+            Object.keys(currentProducts).forEach(id => {
+                renderProduct(id, currentProducts[id]);
+            });
         }
 
-        // Lắng nghe trạng thái đăng nhập
         auth.onAuthStateChanged(updateAuthUI);
 
         function toggleUserMenu() {
@@ -1151,12 +1122,10 @@
 
         function formatCurrency(number) {
             if (isNaN(number)) return '0';
-            // Định dạng tiền tệ VNĐ
             return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(number);
         }
 
         function buyNow() {
-            // Chức năng Mua ngay tạm thời đưa sản phẩm đang xem vào giỏ hàng và chuyển đến thanh toán
             if (currentDetailProductId) {
                 addToCart(currentDetailProductId);
                 checkout();
@@ -1165,28 +1134,24 @@
             }
         }
 
-
         // ====================================================================
-        // HÀM QUẢN LÝ SẢN PHẨM (Đã sửa lỗi hiển thị và update admin mode)
+        // HÀM QUẢN LÝ SẢN PHẨM
         // ====================================================================
 
         function renderProduct(productId, product) {
             const productList = document.getElementById('product-list');
-            const isAdmin = auth.currentUser && auth.currentUser.uid === adminUID;
 
             let productDiv = document.getElementById(`product-${productId}`);
             if (productDiv) {
-                // Nếu sản phẩm đã tồn tại, xóa để render lại (cho update/admin mode)
                 productDiv.remove();
             }
             
-            // Tạo thẻ sản phẩm mới
             productDiv = document.createElement('div');
             productDiv.className = 'product';
             productDiv.id = `product-${productId}`;
             
-            // Thêm class admin-mode nếu là admin để hiện nút xóa
-            if (isAdmin) {
+            // Thêm class admin-mode nếu user hiện tại là admin
+            if (isAdmin()) {
                 productDiv.classList.add('admin-mode');
             }
 
@@ -1210,7 +1175,7 @@
             productList.appendChild(productDiv);
         }
 
-        // Lắng nghe thay đổi trên Firebase để cập nhật sản phẩm theo thời gian thực
+        // Lắng nghe thay đổi trên Firebase
         if (db) {
             const productsRef = db.ref('products');
 
@@ -1225,7 +1190,6 @@
                 const productId = snapshot.key;
                 const product = snapshot.val();
                 currentProducts[productId] = product;
-                // Xóa và render lại sản phẩm để cập nhật (sử dụng logic trong renderProduct)
                 renderProduct(productId, product);
             });
 
@@ -1238,15 +1202,15 @@
         }
 
         function addProduct() {
-            if (!auth.currentUser || auth.currentUser.uid !== adminUID) {
-                alert("Bạn không có quyền thêm sản phẩm!");
+            if (!isAdmin()) {
+                alert("⚠️ Bạn không có quyền thêm sản phẩm! Vui lòng đăng nhập bằng tài khoản Admin.");
                 return;
             }
 
-            const name = document.getElementById('product-name').value;
+            const name = document.getElementById('product-name').value.trim();
             const price = parseFloat(document.getElementById('product-price').value);
-            const imageURL = document.getElementById('product-image').value;
-            const description = document.getElementById('product-desc').value;
+            const imageURL = document.getElementById('product-image').value.trim();
+            const description = document.getElementById('product-desc').value.trim();
             const specsText = document.getElementById('product-specs').value;
 
             if (!name || isNaN(price) || price <= 0) {
@@ -1254,18 +1218,23 @@
                 return;
             }
 
+            if (!imageURL) {
+                alert("Vui lòng nhập URL hình ảnh sản phẩm!");
+                return;
+            }
+
             const newProduct = {
                 name: name,
                 price: price,
-                image: imageURL || 'placeholder.jpg', // Sử dụng URL nếu có
-                description: description,
-                // Chuyển thông số kỹ thuật từ text area thành mảng
-                specs: specsText.split('\n').filter(s => s.trim() !== '')
+                image: imageURL,
+                description: description || "Đang cập nhật...",
+                specs: specsText.split('\n').filter(s => s.trim() !== ''),
+                createdAt: firebase.database.ServerValue.TIMESTAMP
             };
 
             db.ref('products').push(newProduct)
                 .then(() => {
-                    alert("Thêm sản phẩm thành công!");
+                    alert("✅ Thêm sản phẩm thành công!");
                     closeModal('add-product-modal');
                     // Xóa form
                     document.getElementById('product-name').value = '';
@@ -1277,25 +1246,29 @@
                     document.getElementById('product-image-file').value = '';
                 })
                 .catch(error => {
-                    alert("Lỗi khi thêm sản phẩm: " + error.message);
+                    alert("❌ Lỗi khi thêm sản phẩm: " + error.message);
+                    console.error("❌ LỖI:", error);
                 });
         }
 
         function deleteProduct(productId, event) {
-            event.stopPropagation(); // Ngăn chặn việc nhảy vào trang chi tiết
+            event.stopPropagation();
 
-            if (!auth.currentUser || auth.currentUser.uid !== adminUID) {
-                alert("Bạn không có quyền xóa sản phẩm!");
+            if (!isAdmin()) {
+                alert("⚠️ Bạn không có quyền xóa sản phẩm! Vui lòng đăng nhập bằng tài khoản Admin.");
                 return;
             }
 
-            if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm ${currentProducts[productId].name} này không?`)) {
+            const productName = currentProducts[productId]?.name || "sản phẩm này";
+            
+            if (confirm(`Bạn có chắc chắn muốn xóa "${productName}" không?`)) {
                 db.ref('products/' + productId).remove()
                     .then(() => {
-                        alert("Xóa sản phẩm thành công!");
+                        alert("✅ Xóa sản phẩm thành công!");
                     })
                     .catch(error => {
-                        alert("Lỗi khi xóa sản phẩm: " + error.message);
+                        alert("❌ Lỗi khi xóa sản phẩm: " + error.message);
+                        console.error("❌ LỖI:", error);
                     });
             }
         }
@@ -1333,7 +1306,7 @@
                 };
             }
             saveCart();
-            alert(`Đã thêm ${product.name} vào giỏ hàng!`);
+            alert(`✅ Đã thêm ${product.name} vào giỏ hàng!`);
         }
 
         function renderCart() {
@@ -1391,7 +1364,7 @@
             const savedCart = localStorage.getItem('shopCart');
             if (savedCart) {
                 currentCart = JSON.parse(savedCart);
-                renderCart(); // Cập nhật số lượng giỏ hàng ngay khi tải trang
+                renderCart();
             }
         }
 
@@ -1408,14 +1381,11 @@
                 return;
             }
 
-            // Cập nhật thông tin lên modal thanh toán
             document.getElementById('checkout-total-display').innerText = formatCurrency(total);
             document.getElementById('checkout-count-display').innerText = count;
 
-            // Tự động điền thông tin nếu đã đăng nhập
             if (auth.currentUser) {
                 document.getElementById('order-email').value = auth.currentUser.email;
-                // Bạn có thể thêm code để lấy Tên, SĐT, Địa chỉ từ Realtime DB nếu có lưu
             }
 
             closeModal('cart-modal');
@@ -1423,11 +1393,11 @@
         }
 
         function processOrderFromForm() {
-            const name = document.getElementById('order-name').value;
-            const email = document.getElementById('order-email').value;
-            const phone = document.getElementById('order-phone').value;
-            const address = document.getElementById('order-address').value;
-            const notes = document.getElementById('order-notes').value;
+            const name = document.getElementById('order-name').value.trim();
+            const email = document.getElementById('order-email').value.trim();
+            const phone = document.getElementById('order-phone').value.trim();
+            const address = document.getElementById('order-address').value.trim();
+            const notes = document.getElementById('order-notes').value.trim();
             
             const total = Object.values(currentCart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
@@ -1446,16 +1416,15 @@
 
             db.ref('orders').push(orderDetails)
                 .then(() => {
-                    alert("ĐẶT HÀNG THÀNH CÔNG! Đơn hàng của bạn đã được gửi. Chúng tôi sẽ liên hệ lại sớm.");
+                    alert("✅ ĐẶT HÀNG THÀNH CÔNG! Đơn hàng của bạn đã được gửi. Chúng tôi sẽ liên hệ lại sớm.");
                     
-                    // Xóa giỏ hàng sau khi đặt hàng
                     currentCart = {};
                     saveCart();
                     renderCart();
                     closeModal('checkout-modal');
                 })
                 .catch(error => {
-                    alert("Lỗi khi đặt hàng: " + error.message);
+                    alert("❌ Lỗi khi đặt hàng: " + error.message);
                 });
         }
 
@@ -1464,8 +1433,35 @@
         // ====================================================================
 
         document.addEventListener('DOMContentLoaded', () => {
-            loadCart(); // Tải giỏ hàng khi trang được tải
+            loadCart();
         });
     </script>
 </body>
-</html>
+</html> id="login-modal" onclick="closeModalOnOutside(event, 'login-modal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3>🔐 Đăng nhập</h3>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="login-email" placeholder="Nhập email của bạn" value="admin@shop.com">
+            </div>
+            <div class="form-group">
+                <label>Mật khẩu</label>
+                <input type="password" id="login-password" placeholder="Nhập mật khẩu" value="admin123">
+            </div>
+            <div class="form-actions">
+                <button class="btn-secondary" onclick="closeModal('login-modal')">Hủy</button>
+                <button class="btn-primary" onclick="login()">Đăng nhập</button>
+            </div>
+            <p style="margin-top: 20px; text-align: center; color: #666; font-size: 13px;">
+                <strong>Tài khoản Demo:</strong><br>
+                <strong>Admin:</strong> admin@shop.com / admin123<br>
+                <strong>User:</strong> user@shop.com / user123
+            </p>
+            <p style="margin-top: 15px; text-align:center;">
+                Chưa có tài khoản? 
+                <a href="#" onclick="showRegisterForm()" style="color:#667eea; font-weight:600;">Đăng ký ngay</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="modal"
