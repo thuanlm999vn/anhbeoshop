@@ -1411,8 +1411,35 @@ document.addEventListener('click', function(event) {
     }
 });
 
+// =========================================================
+// 10. TỰ ĐỘNG TẠO TÀI KHOẢN ADMIN NẾU CHƯA CÓ
+// =========================================================
+async function createDefaultAdmin() {
+    try {
+        // Kiểm tra xem đã có admin chưa
+        const adminSnapshot = await db.collection('users')
+            .where('email', '==', 'admin@anhshop.com')
+            .get();
+        
+        if (adminSnapshot.empty) {
+            // Tạo tài khoản admin mặc định
+            await db.collection('users').add({
+                name: 'Admin AnhShop',
+                email: 'admin@anhshop.com',
+                password: 'admin123456',
+                role: 'admin',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log('✅ Đã tạo tài khoản admin mặc định');
+        }
+    } catch (error) {
+        console.error('Lỗi khi tạo admin:', error);
+    }
+}
+
 // Khôi phục phiên đăng nhập khi tải trang
 restoreSession();
 loadProducts();
 updateCartCount();
+createDefaultAdmin(); // Tạo admin nếu chưa có
 </script>
