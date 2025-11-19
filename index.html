@@ -932,7 +932,7 @@ function displayProducts() {
     
     productList.innerHTML = products.map(product => `
         <div class="product ${isAdmin ? 'admin-mode' : ''}" 
-             // 1. SỬA LỖI CLICK vào DIV (cho phép xem chi tiết)
+             // 1. SỬA LỖI CLICK vào DIV: Thêm dấu nháy đơn ' ' quanh ID
              onclick="${isAdmin ? '' : `showProductDetail('${product.id}')`}"> 
             
             <div class="product-image-container">
