@@ -925,26 +925,35 @@ function displayProducts() {
     `).join('');
 }
 
-// Hiển thị chi tiết sản phẩm (Sửa ID)
-function showProductDetail(productId) {
-    // Tìm sản phẩm bằng ID tài liệu
-    currentProduct = products.find(p => p.id === productId);
-    if (!currentProduct) return;
+// CHỨC NĂNG HIỂN THỊ SẢN PHẨM (ĐÃ SỬA LỖI CLICK VÀ XÓA)
+function displayProducts() {
+    const productList = document.getElementById('product-list');
+    const isAdmin = currentUser && currentUser.role === 'admin';
     
-    document.getElementById('home-page').style.display = 'none';
-    document.getElementById('detail-page').style.display = 'block';
-    
-    document.getElementById('detail-img').src = currentProduct.image;
-    document.getElementById('detail-name').textContent = currentProduct.name;
-    document.getElementById('detail-price').textContent = currentProduct.price.toLocaleString('vi-VN') + '₫';
-    document.getElementById('detail-desc').textContent = currentProduct.description;
-    
-    const specsList = document.getElementById('detail-specs');
-    // Đảm bảo specs là mảng trước khi map
-    const specsArray = Array.isArray(currentProduct.specs) ? currentProduct.specs : [];
-    specsList.innerHTML = specsArray.map(spec => `<li>• ${spec}</li>`).join('');
-    
-    window.scrollTo(0, 0);
+    productList.innerHTML = products.map(product => `
+        <div class="product ${isAdmin ? 'admin-mode' : ''}" 
+             // 1. SỬA LỖI CLICK vào DIV (cho phép xem chi tiết)
+             onclick="${isAdmin ? '' : `showProductDetail('${product.id}')`}"> 
+            
+            <div class="product-image-container">
+                <img src="${product.image}" alt="${product.name}">
+            </div>
+            <div class="product-content">
+                <h3>${product.name}</h3>
+                <p class="product-price">${product.price.toLocaleString('vi-VN')}₫</p>
+                <div class="product-actions">
+                    // 2. SỬA LỖI CLICK vào nút "Xem chi tiết"
+                    <button class="view-detail" onclick="event.stopPropagation(); showProductDetail('${product.id}')">
+                        Xem chi tiết
+                    </button>
+                    // 3. SỬA LỖI CLICK vào nút "Xóa"
+                    <button class="btn-delete-product" onclick="event.stopPropagation(); deleteProduct('${product.id}')">
+                        🗑️ Xóa
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
 }
 
 
