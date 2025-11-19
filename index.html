@@ -775,8 +775,8 @@
             <button class="btn-secondary" onclick="closeModal('login-modal')">Hủy</button>
             <button class="btn-primary" onclick="login()">Đăng nhập</button>
         </div>
-        <p style="margin-top:15px; text-align:center; font-size:12px; color:#666">
-            Admin: admin@shop.com / admin123
+        <p style="margin-top:15px; text-align:center; font-size:13px; color:#666">
+            Chưa có tài khoản? <a href="#" onclick="closeModal('login-modal'); showRegisterModal(); return false;" style="color:#667eea; font-weight:600;">Đăng ký ngay</a>
         </p>
     </div>
 </div>
@@ -812,3 +812,607 @@
         </div>
     </div>
 </div>
+
+<div class="modal" id="cart-modal" onclick="closeModalOnOutside(event, 'cart-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3>🛒 Giỏ hàng & Thanh toán</h3>
+        
+        <ul class="cart-items" id="cart-items"></ul>
+        <div class="cart-total">Tổng tiền: <span id="cart-total">0</span>₫</div>
+
+        <div class="checkout-section" id="checkout-form">
+            <h4>📍 Thông tin giao hàng</h4>
+            <div class="form-group">
+                <input type="text" id="order-name" placeholder="Họ và tên người nhận">
+            </div>
+            <div class="form-group">
+                <input type="tel" id="order-phone" placeholder="Số điện thoại liên hệ">
+            </div>
+            <div class="form-group">
+                <textarea id="order-address" rows="2" placeholder="Địa chỉ giao hàng chính xác"></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn-secondary" onclick="closeModal('cart-modal')">Đóng</button>
+            <button class="btn-primary" onclick="checkout()">Xác nhận đặt hàng</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="register-modal" onclick="closeModalOnOutside(event, 'register-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3>📝 Đăng ký tài khoản</h3>
+        <div class="form-group">
+            <label>Họ và tên</label>
+            <input type="text" id="register-name" placeholder="Nhập họ tên của bạn">
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="register-email" placeholder="example@email.com">
+        </div>
+        <div class="form-group">
+            <label>Mật khẩu</label>
+            <input type="password" id="register-password" placeholder="Tối thiểu 6 ký tự">
+        </div>
+        <div class="form-group">
+            <label>Xác nhận mật khẩu</label>
+            <input type="password" id="register-confirm-password" placeholder="Nhập lại mật khẩu">
+        </div>
+        <div class="form-actions">
+            <button class="btn-secondary" onclick="closeModal('register-modal')">Hủy</button>
+            <button class="btn-primary" onclick="register()">Đăng ký</button>
+        </div>
+        <p style="margin-top:15px; text-align:center; font-size:13px; color:#666">
+            Đã có tài khoản? <a href="#" onclick="closeModal('register-modal'); showLoginModal(); return false;" style="color:#667eea; font-weight:600;">Đăng nhập ngay</a>
+        </p>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+<script>
+// ============================================================
+// 1. CẤU HÌNH FIREBASE
+// ============================================================
+const firebaseConfig = {
+    apiKey: "AIzaSyAXDfcxcZyPvoNRDcYK70oFtfm1fQfpYwQ", 
+    authDomain: "shopmart-2dc9d.firebaseapp.com", 
+    databaseURL: "https://shopmart-2dc9d-default-rtdb.asia-southeast1.firebasedatabase.app", 
+    projectId: "shopmart-2dc9d", 
+    storageBucket: "shopmart-2dc9d.firebasestorage.app",
+    messagingSenderId: "107122177579",
+    appId: "1:107122177579:web:531735163351335b37e0c4"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ============================================================
+// CÁC BIẾN TOÀN CỤC
+// ============================================================
+let cart = [];
+let currentProduct = null;
+let currentUser = null;
+let products = [];
+
+// ============================================================
+// KHÔI PHỤC PHIÊN ĐĂNG NHẬP TỪ LOCALSTORAGE
+// ============================================================
+function restoreSession() {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        updateUIAfterLogin();
+    }
+    
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+        cart = JSON.parse(savedCart);
+        updateCartCount();
+    }
+}
+
+function saveSession() {
+    if (currentUser) {
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    } else {
+        localStorage.removeItem('currentUser');
+    }
+    localStorage.setItem('cart', JSON.stringify(cart));
+}
+
+function updateUIAfterLogin() {
+    document.getElementById('login-btn').style.display = 'none';
+    document.getElementById('user-info').style.display = 'flex';
+    document.getElementById('user-initial').textContent = currentUser.name.charAt(0).toUpperCase();
+    document.getElementById('user-name-display').textContent = currentUser.name;
+    document.getElementById('user-role-display').textContent = currentUser.role === 'admin' ? 'Quản trị viên' : 'Người dùng';
+    
+    if (currentUser.role === 'admin') {
+        document.getElementById('admin-controls').classList.add('active');
+    }
+}
+
+// =========================================================
+// 2. CHỨC NĂNG LẤY VÀ HIỂN THỊ SẢN PHẨM
+// =========================================================
+
+async function loadProducts() {
+    try {
+        const productsRef = db.collection('products').orderBy('createdAt', 'desc');
+        const snapshot = await productsRef.get();
+        
+        products = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        
+        displayProducts();
+    } catch (error) {
+        console.error("Lỗi khi tải sản phẩm từ Firebase:", error);
+        document.getElementById('product-list').innerHTML = '<p style="text-align: center; grid-column: 1/-1; color: #ff4444;">Không thể tải sản phẩm. Vui lòng kiểm tra kết nối!</p>';
+    }
+}
+
+function displayProducts() {
+    const productList = document.getElementById('product-list');
+    const isAdmin = currentUser && currentUser.role === 'admin';
+    
+    if (products.length === 0) {
+        productList.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">Chưa có sản phẩm nào</p>';
+        return;
+    }
+    
+    productList.innerHTML = products.map(product => `
+        <div class="product" onclick="${isAdmin ? '' : `showProductDetail('${product.id}')`}"> 
+            <div class="product-image-container">
+                <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/280x250?text=No+Image'">
+            </div>
+            <div class="product-content">
+                <h3>${product.name}</h3>
+                <p class="product-price">${product.price.toLocaleString('vi-VN')}₫</p> 
+                <div class="product-actions">
+                    <button class="view-detail" onclick="event.stopPropagation(); showProductDetail('${product.id}')">
+                        Xem chi tiết
+                    </button>
+                    ${isAdmin ? `<button class="btn-delete-product" onclick="event.stopPropagation(); deleteProduct('${product.id}')">🗑️ Xóa</button>` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function showProductDetail(productId) {
+    currentProduct = products.find(p => p.id == productId); 
+    if (!currentProduct) return;
+    
+    document.getElementById('home-page').style.display = 'none';
+    document.getElementById('detail-page').style.display = 'block';
+    
+    document.getElementById('detail-img').src = currentProduct.image;
+    document.getElementById('detail-name').textContent = currentProduct.name;
+    document.getElementById('detail-price').textContent = currentProduct.price.toLocaleString('vi-VN') + '₫';
+    document.getElementById('detail-desc').textContent = currentProduct.description;
+    
+    const specsList = document.getElementById('detail-specs');
+    const specsArray = Array.isArray(currentProduct.specs) ? currentProduct.specs : [];
+    specsList.innerHTML = specsArray.map(spec => `<li>• ${spec}</li>`).join('');
+    
+    window.scrollTo(0, 0);
+}
+
+// =========================================================
+// 3. CHỨC NĂNG THÊM SẢN PHẨM
+// =========================================================
+
+async function addProduct() {
+    if (!currentUser || currentUser.role !== 'admin') {
+        alert('Bạn cần quyền Admin để thêm sản phẩm!');
+        return;
+    }
+
+    const name = document.getElementById('product-name').value.trim();
+    const price = parseInt(document.getElementById('product-price').value);
+    const image = document.getElementById('product-image').value.trim();
+    const desc = document.getElementById('product-desc').value.trim();
+    const specsText = document.getElementById('product-specs').value.trim();
+    
+    if (!name || !price || !image || !desc) {
+        alert('Vui lòng điền đầy đủ thông tin sản phẩm!');
+        return;
+    }
+    
+    if (price <= 0) {
+        alert('Giá sản phẩm phải lớn hơn 0!');
+        return;
+    }
+    
+    const specs = specsText ? specsText.split('\n').filter(s => s.trim()) : [];
+    
+    const newProductData = {
+        name: name,
+        price: price,
+        image: image,
+        description: desc,
+        specs: specs,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: currentUser.email
+    };
+    
+    try {
+        const docRef = await db.collection('products').add(newProductData);
+        
+        closeModal('add-product-modal');
+        alert(`✅ Đã thêm sản phẩm "${name}" thành công!`);
+        
+        // Reset form
+        document.getElementById('product-name').value = '';
+        document.getElementById('product-price').value = '';
+        document.getElementById('product-image').value = '';
+        document.getElementById('product-desc').value = '';
+        document.getElementById('product-specs').value = '';
+        document.getElementById('image-preview').style.display = 'none';
+        
+        loadProducts();
+    } catch (error) {
+        console.error("Lỗi khi thêm sản phẩm:", error);
+        alert('❌ Lỗi: Không thể thêm sản phẩm. Vui lòng thử lại!');
+    }
+}
+
+// =========================================================
+// 4. CHỨC NĂNG XÓA SẢN PHẨM
+// =========================================================
+
+async function deleteProduct(productId) {
+    if (!currentUser || currentUser.role !== 'admin') {
+        alert('Bạn cần quyền Admin để xóa sản phẩm!');
+        return;
+    }
+    
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    
+    if (confirm(`Bạn có chắc muốn xóa sản phẩm "${product.name}"?`)) {
+        try {
+            await db.collection('products').doc(productId).delete();
+            
+            alert('✅ Đã xóa sản phẩm thành công!');
+            loadProducts();
+        } catch (error) {
+            console.error("Lỗi khi xóa sản phẩm:", error);
+            alert('❌ Lỗi: Không thể xóa sản phẩm. Vui lòng kiểm tra quyền truy cập Firebase!');
+        }
+    }
+}
+
+// =========================================================
+// 5. CHỨC NĂNG ĐĂNG KÝ TÀI KHOẢN
+// =========================================================
+
+async function register() {
+    const name = document.getElementById('register-name').value.trim();
+    const email = document.getElementById('register-email').value.trim();
+    const password = document.getElementById('register-password').value;
+    const confirmPassword = document.getElementById('register-confirm-password').value;
+    
+    // Validate
+    if (!name || !email || !password || !confirmPassword) {
+        alert('Vui lòng điền đầy đủ thông tin!');
+        return;
+    }
+    
+    if (password.length < 6) {
+        alert('Mật khẩu phải có ít nhất 6 ký tự!');
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        alert('Mật khẩu xác nhận không khớp!');
+        return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('Email không hợp lệ!');
+        return;
+    }
+    
+    try {
+        // Kiểm tra email đã tồn tại
+        const userSnapshot = await db.collection('users').where('email', '==', email).get();
+        
+        if (!userSnapshot.empty) {
+            alert('Email này đã được đăng ký!');
+            return;
+        }
+        
+        // Tạo tài khoản mới
+        const newUser = {
+            name: name,
+            email: email,
+            password: password, // Trong thực tế nên mã hóa password
+            role: 'user',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        await db.collection('users').add(newUser);
+        
+        alert('✅ Đăng ký thành công! Vui lòng đăng nhập.');
+        closeModal('register-modal');
+        
+        // Reset form
+        document.getElementById('register-name').value = '';
+        document.getElementById('register-email').value = '';
+        document.getElementById('register-password').value = '';
+        document.getElementById('register-confirm-password').value = '';
+        
+        // Mở modal đăng nhập
+        showLoginModal();
+        
+    } catch (error) {
+        console.error("Lỗi khi đăng ký:", error);
+        alert('❌ Lỗi: Không thể đăng ký. Vui lòng thử lại!');
+    }
+}
+
+// =========================================================
+// 6. CHỨC NĂNG ĐĂNG NHẬP
+// =========================================================
+
+async function login() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    
+    if (!email || !password) {
+        alert('Vui lòng nhập đầy đủ email và mật khẩu!');
+        return;
+    }
+    
+    try {
+        // Tìm user trong Firestore
+        const userSnapshot = await db.collection('users')
+            .where('email', '==', email)
+            .where('password', '==', password)
+            .get();
+        
+        if (userSnapshot.empty) {
+            alert('Email hoặc mật khẩu không đúng!');
+            return;
+        }
+        
+        const userData = userSnapshot.docs[0].data();
+        
+        currentUser = {
+            id: userSnapshot.docs[0].id,
+            email: userData.email,
+            name: userData.name,
+            role: userData.role
+        };
+        
+        saveSession();
+        updateUIAfterLogin();
+        closeModal('login-modal');
+        loadProducts();
+        
+        alert(`✅ Đăng nhập thành công!\nChào mừng ${userData.name}${userData.role === 'admin' ? ' - Quản trị viên' : ''}!`);
+        
+    } catch (error) {
+        console.error("Lỗi khi đăng nhập:", error);
+        alert('❌ Lỗi: Không thể đăng nhập. Vui lòng thử lại!');
+    }
+}
+
+function logout() {
+    currentUser = null;
+    saveSession();
+    
+    document.getElementById('login-btn').style.display = 'block';
+    document.getElementById('user-info').style.display = 'none';
+    document.getElementById('admin-controls').classList.remove('active');
+    document.getElementById('user-dropdown').classList.remove('active');
+    
+    loadProducts();
+    alert('✅ Đã đăng xuất thành công!');
+}
+
+// =========================================================
+// 7. CHỨC NĂNG GIỎ HÀNG
+// =========================================================
+
+function addToCartFromDetail() {
+    if (!currentProduct) return;
+    
+    cart.push({
+        id: currentProduct.id,
+        name: currentProduct.name,
+        price: currentProduct.price,
+        image: currentProduct.image
+    });
+    
+    updateCartCount();
+    saveSession();
+    alert('✅ Đã thêm sản phẩm vào giỏ hàng!');
+}
+
+function buyNow() {
+    if (!currentProduct) return;
+    addToCartFromDetail();
+    showCart();
+}
+
+function updateCartCount() {
+    document.getElementById('cart-count').textContent = cart.length;
+}
+
+function showCart() {
+    const cartItems = document.getElementById('cart-items');
+    const cartTotal = document.getElementById('cart-total');
+    
+    if (cart.length === 0) {
+        cartItems.innerHTML = '<div class="empty-cart">Giỏ hàng của bạn đang trống</div>';
+        cartTotal.textContent = '0';
+    } else {
+        let total = 0;
+        cartItems.innerHTML = cart.map((item, index) => {
+            total += item.price;
+            return `
+                <li class="cart-item">
+                    <img src="${item.image}" alt="${item.name}" class="cart-item-image" onerror="this.src='https://via.placeholder.com/60'">
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${item.name}</div>
+                        <div class="cart-item-price">${item.price.toLocaleString('vi-VN')}₫</div>
+                    </div>
+                    <button class="cart-item-remove" onclick="removeFromCart(${index})">Xóa</button>
+                </li>
+            `;
+        }).join('');
+        cartTotal.textContent = total.toLocaleString('vi-VN');
+    }
+    
+    document.getElementById('cart-modal').classList.add('active');
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCartCount();
+    saveSession();
+    showCart();
+}
+
+// =========================================================
+// 8. CHỨC NĂNG THANH TOÁN
+// =========================================================
+
+async function checkout() {
+    if (cart.length === 0) {
+        alert('Giỏ hàng của bạn đang trống!');
+        return;
+    }
+    
+    if (!currentUser) {
+        alert('Vui lòng đăng nhập để đặt hàng!');
+        closeModal('cart-modal');
+        showLoginModal();
+        return;
+    }
+    
+    const orderName = document.getElementById('order-name').value.trim();
+    const orderPhone = document.getElementById('order-phone').value.trim();
+    const orderAddress = document.getElementById('order-address').value.trim();
+
+    if (!orderName || !orderPhone || !orderAddress) {
+        alert('Vui lòng điền đầy đủ thông tin giao hàng!');
+        return;
+    }
+    
+    const phoneRegex = /^[0-9]{10,11}$/;
+    if (!phoneRegex.test(orderPhone)) {
+        alert('Số điện thoại không hợp lệ! (10-11 số)');
+        return;
+    }
+
+    const total = cart.reduce((sum, item) => sum + item.price, 0);
+    
+    const orderData = {
+        userId: currentUser.id,
+        userEmail: currentUser.email,
+        userName: orderName,
+        userPhone: orderPhone,
+        userAddress: orderAddress,
+        items: cart,
+        totalAmount: total,
+        orderDate: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'Đang xử lý'
+    };
+    
+    try {
+        const docRef = await db.collection('orders').add(orderData);
+        
+        alert(`✅ Đặt hàng thành công!\n\nMã đơn hàng: ${docRef.id}\nTổng tiền: ${total.toLocaleString('vi-VN')}₫\n\nChúng tôi sẽ liên hệ với bạn sớm!`);
+        
+        cart = [];
+        updateCartCount();
+        saveSession();
+        document.getElementById('order-name').value = '';
+        document.getElementById('order-phone').value = '';
+        document.getElementById('order-address').value = '';
+        closeModal('cart-modal');
+        
+    } catch (error) {
+        console.error("Lỗi khi lưu đơn hàng:", error);
+        alert('❌ Lỗi: Không thể hoàn tất đơn hàng. Vui lòng thử lại!');
+    }
+}
+
+// =========================================================
+// 9. CÁC CHỨC NĂNG KHÁC
+// =========================================================
+
+function showHome() {
+    document.getElementById('home-page').style.display = 'block';
+    document.getElementById('detail-page').style.display = 'none';
+    window.scrollTo(0, 0);
+}
+
+function showLoginModal() {
+    document.getElementById('login-modal').classList.add('active');
+    document.getElementById('login-email').value = '';
+    document.getElementById('login-password').value = '';
+}
+
+function showRegisterModal() {
+    document.getElementById('register-modal').classList.add('active');
+}
+
+function showAddProductModal() {
+    if (!currentUser || currentUser.role !== 'admin') {
+        alert('Bạn cần đăng nhập với tài khoản Admin để thêm sản phẩm!');
+        return;
+    }
+    document.getElementById('add-product-modal').classList.add('active');
+}
+
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('image-preview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            document.getElementById('product-image').value = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function toggleUserMenu() {
+    document.getElementById('user-dropdown').classList.toggle('active');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+}
+
+function closeModalOnOutside(event, modalId) {
+    if (event.target.id === modalId) {
+        closeModal(modalId);
+    }
+}
+
+document.addEventListener('click', function(event) {
+    const userMenu = document.querySelector('.user-menu');
+    const dropdown = document.getElementById('user-dropdown');
+    if (userMenu && !userMenu.contains(event.target)) {
+        dropdown.classList.remove('active');
+    }
+});
+
+// Khôi phục phiên đăng nhập khi tải trang
+restoreSession();
+loadProducts();
+updateCartCount();
+</script>
