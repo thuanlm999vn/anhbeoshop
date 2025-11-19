@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop Online - Firebase Edition</title>
+<title>AnhShop - Nước giặt & Đồ gia dụng</title>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
@@ -331,7 +331,6 @@
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
     .btn-delete-product {
-        display: none;
         padding: 12px 15px;
         background: #ff4444;
         color: white;
@@ -343,9 +342,6 @@
     }
     .btn-delete-product:hover {
         background: #cc0000;
-    }
-    .product.admin-mode .btn-delete-product {
-        display: block;
     }
     
     /* Product Detail */
@@ -679,7 +675,7 @@
 </head>
 <body>
 <header>
-    <div class="logo" onclick="showHome()">🛒 ShopMart</div>
+    <div class="logo" onclick="showHome()">🧺 AnhShop</div>
     <nav>
         <a href="#" onclick="showHome()">Trang chủ</a>
         <a href="#products">Sản phẩm</a>
@@ -703,7 +699,7 @@
             </div>
         </div>
         <span class="cart" onclick="showCart()">
-            🛍 Giỏ hàng <span class="cart-badge" id="cart-count">0</span>
+            🛒 Giỏ hàng <span class="cart-badge" id="cart-count">0</span>
         </span>
     </div>
 </header>
@@ -718,8 +714,8 @@
 <div id="home-page">
     <section class="banner">
         <div class="banner-content">
-            <h1>Bộ Sưu Tập Mới 2025</h1>
-            <p>Khám phá những sản phẩm công nghệ mới nhất với giá tốt nhất</p>
+            <h1>Nước Giặt & Đồ Gia Dụng Chất Lượng</h1>
+            <p>Giải pháp giặt giũ và sản phẩm gia dụng cho mọi gia đình</p>
             <button class="banner-btn" onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})">
                 Khám phá ngay
             </button>
@@ -761,7 +757,7 @@
 </div>
 
 <footer>
-    <p>© 2025 ShopMart - Nền tảng mua sắm trực tuyến hàng đầu</p>
+    <p>© 2025 AnhShop - Nền tảng mua sắm nước giặt & đồ gia dụng uy tín</p>
 </footer>
 
 <div class="modal" id="login-modal" onclick="closeModalOnOutside(event, 'login-modal')">
@@ -816,431 +812,3 @@
         </div>
     </div>
 </div>
-
-<div class="modal" id="cart-modal" onclick="closeModalOnOutside(event, 'cart-modal')">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <h3>🛒 Giỏ hàng & Thanh toán</h3>
-        
-        <ul class="cart-items" id="cart-items"></ul>
-        <div class="cart-total">Tổng tiền: <span id="cart-total">0</span>₫</div>
-
-        <div class="checkout-section" id="checkout-form">
-            <h4>📍 Thông tin giao hàng</h4>
-            <div class="form-group">
-                <input type="text" id="order-name" placeholder="Họ và tên người nhận">
-            </div>
-            <div class="form-group">
-                <input type="tel" id="order-phone" placeholder="Số điện thoại liên hệ">
-            </div>
-            <div class="form-group">
-                <textarea id="order-address" rows="2" placeholder="Địa chỉ giao hàng chính xác"></textarea>
-            </div>
-        </div>
-
-        <div class="form-actions">
-            <button class="btn-secondary" onclick="closeModal('cart-modal')">Đóng</button>
-            <button class="btn-primary" onclick="checkout()">Xác nhận đặt hàng</button>
-        </div>
-    </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-
-<script>
-// ============================================================
-// 1. CẤU HÌNH FIREBASE (QUAN TRỌNG: ĐÃ DÙNG KEY CỦA BẠN TRONG MUCIEU1.TXR.TXT)
-// ============================================================
-const firebaseConfig = {
-    // Đã lấy từ file của bạn: AIzaSyAXDfcxcZyPvoNRDcYK70oFtfm1fQfpYwQ
-    apiKey: "AIzaSyAXDfcxcZyPvoNRDcYK70oFtfm1fQfpYwQ", 
-    authDomain: "shopmart-2dc9d.firebaseapp.com", 
-    databaseURL: "https://shopmart-2dc9d-default-rtdb.asia-southeast1.firebasedatabase.app", 
-    projectId: "shopmart-2dc9d", 
-    storageBucket: "shopmart-2dc9d.firebasestorage.app",
-    messagingSenderId: "107122177579",
-    appId: "1:107122177579:web:531735163351335b37e0c4"
-};
-
-// Khởi tạo Firebase và Firestore
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// ============================================================
-// CÁC BIẾN TOÀN CỤC
-// ============================================================
-let cart = [];
-let currentProduct = null;
-let currentUser = null;
-let products = [];
-
-const accounts = {
-    'admin@shop.com': { password: 'admin123', name: 'Admin', role: 'admin' },
-    'user@shop.com': { password: 'user123', name: 'User', role: 'user' }
-};
-
-// =========================================================
-// 2. CHỨC NĂNG LẤY VÀ HIỂN THỊ SẢN PHẨM
-// =========================================================
-
-// Tải sản phẩm từ Firebase
-async function loadProducts() {
-    try {
-        const productsRef = db.collection('products').orderBy('id');
-        const snapshot = await productsRef.get();
-        
-        products = snapshot.docs.map(doc => ({
-            id: doc.id, // ID tài liệu của Firebase (Dạng chuỗi, dùng để xóa)
-            ...doc.data()
-        }));
-        
-        displayProducts();
-    } catch (error) {
-        console.error("Lỗi khi tải sản phẩm từ Firebase:", error);
-    }
-}
-
-// Hiển thị sản phẩm (ĐÃ SỬA LỖI CLICK VÀ GIÁ)
-function displayProducts() {
-    const productList = document.getElementById('product-list');
-    const isAdmin = currentUser && currentUser.role === 'admin';
-    
-    productList.innerHTML = products.map(product => `
-        <div class="product ${isAdmin ? 'admin-mode' : ''}" 
-             onclick="${isAdmin ? '' : `showProductDetail('${product.id}')`}"> 
-            
-            <div class="product-image-container">
-                <img src="${product.image}" alt="${product.name}">
-            </div>
-            <div class="product-content">
-                <h3>${product.name}</h3>
-                <p class="product-price">${product.price.toLocaleString('vi-VN')}₫</p> 
-                <div class="product-actions">
-                    <button class="view-detail" onclick="event.stopPropagation(); showProductDetail('${product.id}')">
-                        Xem chi tiết
-                    </button>
-                    <button class="btn-delete-product" onclick="event.stopPropagation(); deleteProduct('${product.id}')"> 
-                        🗑️ Xóa
-                    </button>
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
-
-// Hiển thị chi tiết sản phẩm (ĐÃ SỬA LỖI NẶNG: Xử lý mảng 'specs' để tránh lỗi click chung)
-function showProductDetail(productId) {
-    // Tìm sản phẩm bằng ID tài liệu Firebase
-    currentProduct = products.find(p => p.id == productId); 
-    if (!currentProduct) return;
-    
-    document.getElementById('home-page').style.display = 'none';
-    document.getElementById('detail-page').style.display = 'block';
-    
-    document.getElementById('detail-img').src = currentProduct.image;
-    document.getElementById('detail-name').textContent = currentProduct.name;
-    document.getElementById('detail-price').textContent = currentProduct.price.toLocaleString('vi-VN') + '₫';
-    document.getElementById('detail-desc').textContent = currentProduct.description;
-    
-    const specsList = document.getElementById('detail-specs');
-    // Đảm bảo specs là mảng để tránh lỗi .map is not a function
-    const specsArray = Array.isArray(currentProduct.specs) ? currentProduct.specs : [];
-    specsList.innerHTML = specsArray.map(spec => `<li>• ${spec}</li>`).join('');
-    
-    window.scrollTo(0, 0);
-}
-
-
-// =========================================================
-// 3. CHỨC NĂNG THÊM SẢN PHẨM
-// =========================================================
-
-async function addProduct() {
-    const name = document.getElementById('product-name').value.trim();
-    const price = parseInt(document.getElementById('product-price').value);
-    const image = document.getElementById('product-image').value.trim();
-    const desc = document.getElementById('product-desc').value.trim();
-    const specsText = document.getElementById('product-specs').value.trim();
-    
-    if (!name || !price || !image || !desc || !specsText) {
-        alert('Vui lòng điền đầy đủ thông tin!');
-        return;
-    }
-    
-    const specs = specsText.split('\n').filter(s => s.trim());
-    
-    const newProductData = {
-        name: name,
-        price: price,
-        image: image,
-        description: desc,
-        specs: specs,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(), 
-        id: Date.now() 
-    };
-    
-    try {
-        await db.collection('products').add(newProductData);
-        
-        closeModal('add-product-modal');
-        alert(`✅ Đã thêm sản phẩm thành công!`);
-        
-        loadProducts();
-    } catch (error) {
-        console.error("Lỗi khi thêm sản phẩm:", error);
-        alert('Lỗi: Không thể thêm sản phẩm. Vui lòng kiểm tra Firebase Rules và kết nối mạng.');
-    }
-}
-
-
-// =========================================================
-// 4. CHỨC NĂNG XÓA SẢN PHẨM (ĐÃ KIỂM TRA LẠI LOGIC FIREBASE ID)
-// =========================================================
-
-async function deleteProduct(productId) {
-    if (!currentUser || currentUser.role !== 'admin') {
-        alert('Bạn cần quyền Admin để xóa sản phẩm!');
-        return;
-    }
-    
-    if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
-        try {
-            // productId ở đây là ID tài liệu Firestore (string), đã được truyền đúng
-            await db.collection('products').doc(productId).delete();
-            
-            alert('Đã xóa sản phẩm thành công!');
-            loadProducts();
-        } catch (error) {
-            console.error("Lỗi khi xóa sản phẩm:", error);
-            // Thông báo lỗi rõ ràng hơn để người dùng kiểm tra Rules lần cuối
-            alert('LỖI XÓA: Không thể xóa sản phẩm. Vui lòng kiểm tra lại 1. Firebase Rules và 2. ID sản phẩm có tồn tại.');
-        }
-    }
-}
-
-
-// =========================================================
-// 5. CÁC CHỨC NĂNG KHÁC
-// =========================================================
-
-function showHome() {
-    document.getElementById('home-page').style.display = 'block';
-    document.getElementById('detail-page').style.display = 'none';
-    window.scrollTo(0, 0);
-}
-
-function login() {
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    
-    if (!email || !password) {
-        alert('Vui lòng nhập đầy đủ email và mật khẩu!');
-        return;
-    }
-    
-    const account = accounts[email];
-    
-    if (!account || account.password !== password) {
-        alert('Email hoặc mật khẩu không đúng!');
-        return;
-    }
-    
-    currentUser = { email: email, name: account.name, role: account.role };
-    
-    // Cập nhật giao diện
-    document.getElementById('login-btn').style.display = 'none';
-    document.getElementById('user-info').style.display = 'flex';
-    document.getElementById('user-initial').textContent = account.name.charAt(0);
-    document.getElementById('user-name-display').textContent = account.name;
-    document.getElementById('user-role-display').textContent = account.role === 'admin' ? 'Quản trị viên' : 'Người dùng';
-    
-    if (account.role === 'admin') {
-        document.getElementById('admin-controls').classList.add('active');
-    }
-    
-    closeModal('login-modal');
-    loadProducts();
-    
-    alert(`Đăng nhập thành công!\nChào mừng ${account.name}${account.role === 'admin' ? ' - Quản trị viên' : ''}!`);
-}
-
-function logout() {
-    currentUser = null;
-    document.getElementById('login-btn').style.display = 'block';
-    document.getElementById('user-info').style.display = 'none';
-    document.getElementById('admin-controls').classList.remove('active');
-    document.getElementById('user-dropdown').classList.remove('active');
-    
-    loadProducts();
-    alert('Đã đăng xuất thành công!');
-}
-
-function toggleUserMenu() {
-    document.getElementById('user-dropdown').classList.toggle('active');
-}
-
-function showLoginModal() {
-    document.getElementById('login-modal').classList.add('active');
-    document.getElementById('login-email').value = '';
-    document.getElementById('login-password').value = '';
-}
-
-function showAddProductModal() {
-    if (!currentUser || currentUser.role !== 'admin') {
-        alert('Bạn cần đăng nhập với tài khoản Admin để thêm sản phẩm!');
-        return;
-    }
-    document.getElementById('add-product-modal').classList.add('active');
-    document.getElementById('product-name').value = '';
-    document.getElementById('product-price').value = '';
-    document.getElementById('product-image').value = '';
-    document.getElementById('product-image-file').value = '';
-    document.getElementById('image-preview').style.display = 'none';
-    document.getElementById('product-desc').value = '';
-    document.getElementById('product-specs').value = '';
-}
-
-function previewImage(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const preview = document.getElementById('image-preview');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            document.getElementById('product-image').value = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function addToCartFromDetail() {
-    if (!currentProduct) return;
-    
-    cart.push({
-        id: currentProduct.id,
-        name: currentProduct.name,
-        price: currentProduct.price,
-        image: currentProduct.image
-    });
-    
-    updateCartCount();
-    alert('Đã thêm sản phẩm vào giỏ hàng!');
-}
-
-function buyNow() {
-    if (!currentProduct) return;
-    addToCartFromDetail();
-    showCart();
-}
-
-function updateCartCount() {
-    document.getElementById('cart-count').textContent = cart.length;
-}
-
-function showCart() {
-    const cartItems = document.getElementById('cart-items');
-    const cartTotal = document.getElementById('cart-total');
-    
-    if (cart.length === 0) {
-        cartItems.innerHTML = '<div class="empty-cart">Giỏ hàng của bạn đang trống</div>';
-        cartTotal.textContent = '0';
-    } else {
-        let total = 0;
-        cartItems.innerHTML = cart.map((item, index) => {
-            total += item.price;
-            return `
-                <li class="cart-item">
-                    <img src="${item.image}" alt="${item.name}" class="cart-item-image">
-                    <div class="cart-item-info">
-                        <div class="cart-item-name">${item.name}</div>
-                        <div class="cart-item-price">${item.price.toLocaleString('vi-VN')}₫</div>
-                    </div>
-                    <button class="cart-item-remove" onclick="removeFromCart(${index})">Xóa</button>
-                </li>
-            `;
-        }).join('');
-        cartTotal.textContent = total.toLocaleString('vi-VN');
-    }
-    
-    document.getElementById('cart-modal').classList.add('active');
-}
-
-function removeFromCart(index) {
-    cart.splice(index, 1);
-    updateCartCount();
-    showCart();
-}
-
-// Thanh toán (ĐÃ SỬA: Lưu đơn hàng vào Firestore)
-async function checkout() {
-    if (cart.length === 0) {
-        alert('Giỏ hàng của bạn đang trống!');
-        return;
-    }
-    
-    // Lấy thông tin người nhận (được thêm vào HTML)
-    const orderName = document.getElementById('order-name').value.trim();
-    const orderPhone = document.getElementById('order-phone').value.trim();
-    const orderAddress = document.getElementById('order-address').value.trim();
-
-    if (!orderName || !orderPhone || !orderAddress) {
-        alert('Vui lòng điền đầy đủ thông tin giao hàng: Họ tên, Số điện thoại và Địa chỉ!');
-        return;
-    }
-
-    const total = cart.reduce((sum, item) => sum + item.price, 0);
-    
-    const orderData = {
-        userId: currentUser ? currentUser.email : 'Guest', 
-        userName: orderName,
-        userPhone: orderPhone,
-        userAddress: orderAddress,
-        items: cart,
-        totalAmount: total,
-        orderDate: firebase.firestore.FieldValue.serverTimestamp(),
-        status: 'Pending'
-    };
-    
-    try {
-        const docRef = await db.collection('orders').add(orderData);
-        
-        alert(`✅ Đặt hàng thành công! Đơn hàng đã được lưu.\n\nTổng đơn hàng: ${total.toLocaleString('vi-VN')}₫\nID đơn hàng: ${docRef.id}`);
-        
-        // Xóa giỏ hàng và form sau khi đặt hàng thành công
-        cart = [];
-        updateCartCount();
-        document.getElementById('order-name').value = '';
-        document.getElementById('order-phone').value = '';
-        document.getElementById('order-address').value = '';
-        closeModal('cart-modal');
-        
-    } catch (error) {
-        console.error("Lỗi khi lưu đơn hàng vào Firebase:", error);
-        alert('Lỗi: Không thể hoàn tất đơn hàng. Vui lòng kiểm tra kết nối mạng và Firebase Rules.');
-    }
-}
-
-function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
-}
-
-function closeModalOnOutside(event, modalId) {
-    if (event.target.id === modalId) {
-        closeModal(modalId);
-    }
-}
-
-document.addEventListener('click', function(event) {
-    const userMenu = document.querySelector('.user-menu');
-    const dropdown = document.getElementById('user-dropdown');
-    if (userMenu && !userMenu.contains(event.target)) {
-        dropdown.classList.remove('active');
-    }
-});
-
-loadProducts();
-updateCartCount();
-</script>
-</body>
-</html>
