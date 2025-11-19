@@ -848,27 +848,29 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
 <script>
-// 1. CẤU HÌNH VÀ KHỞI TẠO FIREBASE
-// CHÚ Ý: BẠN CẦN THAY THẾ CHUỖI NÀY BẰNG CẤU HÌNH CỦA BẠN
+// ============================================================
+// 1. CẤU HÌNH FIREBASE (QUAN TRỌNG: THAY KEY CỦA BẠN VÀO ĐÂY)
+// ============================================================
 const firebaseConfig = {
-  apiKey: "AIzaSyAXDfcxcZyPvoNRDcYK70oFtfm1fQfpYwQ",
-  authDomain: "shopmart-2dc9d.firebaseapp.com",
-  databaseURL: "https://shopmart-2dc9d-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "shopmart-2dc9d",
-  storageBucket: "shopmart-2dc9d.firebasestorage.app",
-  messagingSenderId: "105192297570",
-  appId: "1:105192297570:web:c28584595b92a9174a6d3b"
+    apiKey: "THAY_API_KEY_CUA_BAN_VAO_DAY", 
+    authDomain: "THAY_AUTH_DOMAIN_VAO_DAY", 
+    projectId: "THAY_PROJECT_ID_VAO_DAY", 
+    storageBucket: "THAY_STORAGE_BUCKET_VAO_DAY",
+    messagingSenderId: "THAY_MESSAGING_SENDER_ID_VAO_DAY",
+    appId: "THAY_APP_ID_VAO_DAY"
 };
-
 
 // Khởi tạo Firebase và Firestore
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// ============================================================
+// CÁC BIẾN TOÀN CỤC
+// ============================================================
 let cart = [];
 let currentProduct = null;
 let currentUser = null;
-let products = []; // Đặt lại là mảng trống, dữ liệu sẽ được lấy từ Firebase
+let products = []; // Dữ liệu sẽ được lấy từ Firebase
 
 // Tài khoản demo (Chỉ dùng để mô phỏng Admin Login)
 const accounts = {
@@ -877,7 +879,7 @@ const accounts = {
 };
 
 // =========================================================
-// 2. CHỨC NĂNG LẤY VÀ HIỂN THỊ SẢN PHẨM (Mới)
+// 2. CHỨC NĂNG LẤY VÀ HIỂN THỊ SẢN PHẨM
 // =========================================================
 
 // Tải sản phẩm từ Firebase
@@ -887,52 +889,25 @@ async function loadProducts() {
         const snapshot = await productsRef.get();
         
         products = snapshot.docs.map(doc => ({
-            id: doc.id, // ID tài liệu của Firebase
+            id: doc.id, // ID tài liệu của Firebase (Dạng chuỗi)
             ...doc.data() // Dữ liệu còn lại
         }));
         
         displayProducts();
     } catch (error) {
         console.error("Lỗi khi tải sản phẩm từ Firebase:", error);
-        // Hiển thị một số sản phẩm tĩnh nếu tải lỗi
-        // (Bạn có thể giữ lại mảng 'products' mặc định ở trên nếu muốn)
+        // Có thể thêm thông báo lỗi cho người dùng nếu cần
     }
 }
 
-// Hiển thị sản phẩm (Giữ nguyên)
-function displayProducts() {
-    const productList = document.getElementById('product-list');
-    const isAdmin = currentUser && currentUser.role === 'admin';
-    
-    productList.innerHTML = products.map(product => `
-        <div class="product ${isAdmin ? 'admin-mode' : ''}" onclick="${isAdmin ? '' : `showProductDetail('${product.id}')`}">
-            <div class="product-image-container">
-                <img src="${product.image}" alt="${product.name}">
-            </div>
-            <div class="product-content">
-                <h3>${product.name}</h3>
-                <p class="product-price">${product.price.toLocaleString('vi-VN')}₫</p>
-                <div class="product-actions">
-                    <button class="view-detail" onclick="event.stopPropagation(); showProductDetail('${product.id}')">
-                        Xem chi tiết
-                    </button>
-                    <button class="btn-delete-product" onclick="event.stopPropagation(); deleteProduct('${product.id}')">
-                        🗑️ Xóa
-                    </button>
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
-
-// CHỨC NĂNG HIỂN THỊ SẢN PHẨM (ĐÃ SỬA LỖI CLICK VÀ XÓA)
+// Hiển thị sản phẩm (ĐÃ SỬA LỖI CLICK VÀ XÓA: Thêm dấu nháy đơn quanh ID)
 function displayProducts() {
     const productList = document.getElementById('product-list');
     const isAdmin = currentUser && currentUser.role === 'admin';
     
     productList.innerHTML = products.map(product => `
         <div class="product ${isAdmin ? 'admin-mode' : ''}" 
-             // 1. SỬA LỖI CLICK vào DIV: Thêm dấu nháy đơn ' ' quanh ID
+             // FIX LỖI 1: Thêm dấu nháy đơn ' ' quanh ID
              onclick="${isAdmin ? '' : `showProductDetail('${product.id}')`}"> 
             
             <div class="product-image-container">
@@ -942,11 +917,11 @@ function displayProducts() {
                 <h3>${product.name}</h3>
                 <p class="product-price">${product.price.toLocaleString('vi-VN')}₫</p>
                 <div class="product-actions">
-                    // 2. SỬA LỖI CLICK vào nút "Xem chi tiết"
+                    // FIX LỖI 2: Thêm dấu nháy đơn ' ' quanh ID
                     <button class="view-detail" onclick="event.stopPropagation(); showProductDetail('${product.id}')">
                         Xem chi tiết
                     </button>
-                    // 3. SỬA LỖI CLICK vào nút "Xóa"
+                    // FIX LỖI 3: Thêm dấu nháy đơn ' ' quanh ID
                     <button class="btn-delete-product" onclick="event.stopPropagation(); deleteProduct('${product.id}')">
                         🗑️ Xóa
                     </button>
@@ -956,9 +931,31 @@ function displayProducts() {
     `).join('');
 }
 
+// Hiển thị chi tiết sản phẩm (ĐÃ SỬA LỖI NẶNG: Xử lý mảng 'specs')
+function showProductDetail(productId) {
+    // Dùng toán tử == cho phép tìm kiếm giữa ID số và ID chuỗi (Đã fix lỗi)
+    currentProduct = products.find(p => p.id == productId); 
+    if (!currentProduct) return;
+    
+    document.getElementById('home-page').style.display = 'none';
+    document.getElementById('detail-page').style.display = 'block';
+    
+    document.getElementById('detail-img').src = currentProduct.image;
+    document.getElementById('detail-name').textContent = currentProduct.name;
+    document.getElementById('detail-price').textContent = currentProduct.price.toLocaleString('vi-VN') + '₫';
+    document.getElementById('detail-desc').textContent = currentProduct.description;
+    
+    const specsList = document.getElementById('detail-specs');
+    // FIX LỖI NẶNG: Đảm bảo specs là mảng trước khi dùng .map()
+    const specsArray = Array.isArray(currentProduct.specs) ? currentProduct.specs : [];
+    specsList.innerHTML = specsArray.map(spec => `<li>• ${spec}</li>`).join('');
+    
+    window.scrollTo(0, 0);
+}
+
 
 // =========================================================
-// 3. CHỨC NĂNG THÊM SẢN PHẨM (Mới)
+// 3. CHỨC NĂNG THÊM SẢN PHẨM
 // =========================================================
 
 async function addProduct() {
@@ -981,28 +978,26 @@ async function addProduct() {
         image: image,
         description: desc,
         specs: specs,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(), // Dùng để sắp xếp
-        id: Date.now() // ID tạm để sắp xếp
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(), 
+        id: Date.now() 
     };
     
     try {
-        // Thêm tài liệu mới vào collection 'products'
         const docRef = await db.collection('products').add(newProductData);
         
         closeModal('add-product-modal');
-        alert(`Đã thêm sản phẩm thành công! ID: ${docRef.id}`);
+        alert(`✅ Đã thêm sản phẩm thành công!`);
         
-        // Tải lại danh sách sản phẩm để cập nhật giao diện
-        loadProducts();
+        loadProducts(); // Tải lại danh sách sản phẩm để cập nhật giao diện
     } catch (error) {
         console.error("Lỗi khi thêm sản phẩm:", error);
-        alert('Lỗi: Không thể thêm sản phẩm. Vui lòng kiểm tra Console (F12) và Firebase Rules.');
+        alert('Lỗi: Không thể thêm sản phẩm. Vui lòng kiểm tra Firebase Rules và kết nối mạng.');
     }
 }
 
 
 // =========================================================
-// 4. CHỨC NĂNG XÓA SẢN PHẨM (Mới)
+// 4. CHỨC NĂNG XÓA SẢN PHẨM
 // =========================================================
 
 async function deleteProduct(productId) {
@@ -1013,32 +1008,30 @@ async function deleteProduct(productId) {
     
     if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
         try {
-            // Xóa tài liệu theo ID
             await db.collection('products').doc(productId).delete();
             
             alert('Đã xóa sản phẩm thành công!');
-            // Tải lại danh sách sản phẩm để cập nhật giao diện
-            loadProducts();
+            loadProducts(); // Tải lại danh sách sản phẩm để cập nhật giao diện
         } catch (error) {
             console.error("Lỗi khi xóa sản phẩm:", error);
-            alert('Lỗi: Không thể xóa sản phẩm. Vui lòng kiểm tra Console (F12) và Firebase Rules.');
+            alert('Lỗi: Không thể xóa sản phẩm. Vui lòng kiểm tra Firebase Rules.');
         }
     }
 }
 
 
 // =========================================================
-// 5. CHỨC NĂNG CÒN LẠI (Giữ nguyên)
+// 5. CÁC CHỨC NĂNG KHÁC (Giữ nguyên)
 // =========================================================
 
-// Quay về trang chủ (Giữ nguyên)
+// Quay về trang chủ
 function showHome() {
     document.getElementById('home-page').style.display = 'block';
     document.getElementById('detail-page').style.display = 'none';
     window.scrollTo(0, 0);
 }
 
-// Đăng nhập (Giữ nguyên logic demo)
+// Đăng nhập
 function login() {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
@@ -1074,7 +1067,7 @@ function login() {
     alert(`Đăng nhập thành công!\nChào mừng ${account.name}${account.role === 'admin' ? ' - Quản trị viên' : ''}!`);
 }
 
-// Đăng xuất (Giữ nguyên)
+// Đăng xuất
 function logout() {
     currentUser = null;
     document.getElementById('login-btn').style.display = 'block';
@@ -1086,19 +1079,19 @@ function logout() {
     alert('Đã đăng xuất thành công!');
 }
 
-// Toggle user menu (Giữ nguyên)
+// Toggle user menu
 function toggleUserMenu() {
     document.getElementById('user-dropdown').classList.toggle('active');
 }
 
-// Hiển thị modal đăng nhập (Giữ nguyên)
+// Hiển thị modal đăng nhập
 function showLoginModal() {
     document.getElementById('login-modal').classList.add('active');
     document.getElementById('login-email').value = '';
     document.getElementById('login-password').value = '';
 }
 
-// Hiển thị modal thêm sản phẩm (Giữ nguyên)
+// Hiển thị modal thêm sản phẩm
 function showAddProductModal() {
     if (!currentUser || currentUser.role !== 'admin') {
         alert('Bạn cần đăng nhập với tài khoản Admin để thêm sản phẩm!');
@@ -1115,7 +1108,7 @@ function showAddProductModal() {
     document.getElementById('product-specs').value = '';
 }
 
-// Preview ảnh khi upload (Giữ nguyên)
+// Preview ảnh khi upload
 function previewImage(event) {
     const file = event.target.files[0];
     if (file) {
@@ -1130,7 +1123,7 @@ function previewImage(event) {
     }
 }
 
-// Thêm vào giỏ hàng (Giữ nguyên)
+// Thêm vào giỏ hàng
 function addToCartFromDetail() {
     if (!currentProduct) return;
     
@@ -1145,19 +1138,19 @@ function addToCartFromDetail() {
     alert('Đã thêm sản phẩm vào giỏ hàng!');
 }
 
-// Mua ngay (Giữ nguyên)
+// Mua ngay
 function buyNow() {
     if (!currentProduct) return;
     addToCartFromDetail();
     showCart();
 }
 
-// Cập nhật số lượng giỏ hàng (Giữ nguyên)
+// Cập nhật số lượng giỏ hàng
 function updateCartCount() {
     document.getElementById('cart-count').textContent = cart.length;
 }
 
-// Hiển thị giỏ hàng (Giữ nguyên)
+// Hiển thị giỏ hàng
 function showCart() {
     const cartItems = document.getElementById('cart-items');
     const cartTotal = document.getElementById('cart-total');
@@ -1186,14 +1179,14 @@ function showCart() {
     document.getElementById('cart-modal').classList.add('active');
 }
 
-// Xóa sản phẩm khỏi giỏ (Giữ nguyên)
+// Xóa sản phẩm khỏi giỏ
 function removeFromCart(index) {
     cart.splice(index, 1);
     updateCartCount();
     showCart();
 }
 
-// Thanh toán (Giữ nguyên)
+// Thanh toán
 function checkout() {
     if (cart.length === 0) {
         alert('Giỏ hàng của bạn đang trống!');
@@ -1208,19 +1201,19 @@ function checkout() {
     closeModal('cart-modal');
 }
 
-// Đóng modal (Giữ nguyên)
+// Đóng modal
 function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('active');
 }
 
-// Đóng modal khi click bên ngoài (Giữ nguyên)
+// Đóng modal khi click bên ngoài
 function closeModalOnOutside(event, modalId) {
     if (event.target.id === modalId) {
         closeModal(modalId);
     }
 }
 
-// Đóng user dropdown khi click ra ngoài (Giữ nguyên)
+// Đóng user dropdown khi click ra ngoài
 document.addEventListener('click', function(event) {
     const userMenu = document.querySelector('.user-menu');
     const dropdown = document.getElementById('user-dropdown');
