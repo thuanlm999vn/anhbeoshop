@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WashMaster - Máy Giặt Thông Minh</title>
+<title>Sạch Thơm Ánh - Bột Giặt Cao Cấp</title>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
@@ -31,7 +31,8 @@
     .logo { 
         font-size: 24px; 
         font-weight: 900; 
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* Màu sắc tươi sáng, sạch sẽ */
+        background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%); 
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         cursor: pointer;
@@ -43,7 +44,7 @@
         font-weight: 600;
         transition: color 0.3s;
     }
-    nav a:hover { color: #667eea; }
+    nav a:hover { color: #0083b0; }
 
     /* Icons */
     .icon-container {
@@ -58,7 +59,7 @@
         color: #333;
         transition: color 0.3s;
     }
-    .cart-icon:hover, .user-menu:hover { color: #667eea; }
+    .cart-icon:hover, .user-menu:hover { color: #0083b0; }
     
     .cart-count {
         position: absolute;
@@ -74,7 +75,7 @@
     
     /* User Menu */
     #user-info {
-        display: none; /* Mặc định ẩn, sẽ hiện khi đăng nhập */
+        display: none; 
         align-items: center;
         gap: 10px;
     }
@@ -82,7 +83,7 @@
         width: 36px;
         height: 36px;
         border-radius: 50%;
-        background: #667eea;
+        background: #00b4db;
         color: white;
         display: flex;
         justify-content: center;
@@ -116,10 +117,6 @@
         padding: 15px;
         border-bottom: 1px solid #eee;
     }
-    .user-dropdown-info div {
-        font-size: 14px;
-        color: #555;
-    }
     .user-dropdown-info strong {
         display: block;
         font-size: 16px;
@@ -142,7 +139,7 @@
 
     /* Admin Controls */
     #admin-controls {
-        display: none; /* Mặc định ẩn */
+        display: none; 
         margin-right: 20px;
     }
     #admin-controls.active {
@@ -162,17 +159,14 @@
         background: #45a049;
     }
 
-    /* Banner - Đã sửa cho Máy Giặt */
+    /* Banner - Đã sửa cho Bột Giặt */
     .banner {
         text-align: center;
         padding: 100px 50px;
-        /* Sử dụng hình ảnh máy giặt làm nền */
-        background: 
-            linear-gradient(rgba(30, 60, 114, 0.7), rgba(42, 82, 152, 0.7)), /* Overlay tối màu */
-            url('image_6b685b.jpg') no-repeat center center; /* Ảnh nền */
-        background-size: cover;
+        /* Màu gradient tươi sáng, sạch sẽ */
+        background: linear-gradient(135deg, #a8c0ff 0%, #3f2b96 100%);
         color: white;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        text-shadow: 0 0 10px rgba(0,0,0,0.5);
         min-height: 400px;
         display: flex;
         flex-direction: column;
@@ -188,7 +182,7 @@
     .banner p {
         font-size: 20px;
         margin-bottom: 30px;
-        max-width: 600px;
+        max-width: 700px;
     }
     .btn-shop-now {
         padding: 15px 30px;
@@ -221,7 +215,7 @@
         display: block;
         width: 60px;
         height: 4px;
-        background: #667eea;
+        background: #0083b0;
         margin: 10px auto 0;
         border-radius: 2px;
     }
@@ -237,7 +231,7 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         overflow: hidden;
         transition: transform 0.3s, box-shadow 0.3s;
-        cursor: pointer;
+        /* Loại bỏ cursor: pointer; để tránh nhầm lẫn với lỗi cũ */
         display: flex;
         flex-direction: column;
     }
@@ -277,7 +271,7 @@
         font-size: 22px;
         color: #ff5252;
         font-weight: bold;
-        margin-top: auto; /* Đẩy giá xuống dưới */
+        margin-top: auto; 
         margin-bottom: 15px;
     }
     .product-actions {
@@ -294,12 +288,12 @@
         flex-grow: 1;
     }
     .product-actions .view-detail {
-        background: #667eea;
+        background: #00b4db;
         color: white;
-        border-color: #667eea;
+        border-color: #00b4db;
     }
     .product-actions .view-detail:hover {
-        background: #556ee6;
+        background: #0083b0;
     }
     
     /* Delete Button for Admin */
@@ -307,14 +301,14 @@
         background: #f44336;
         color: white;
         border-color: #f44336;
-        display: none; /* Mặc định ẩn */
+        display: none; 
     }
     .product.admin-mode .view-detail {
-        display: none;
+        flex-grow: 0.5;
     }
     .product.admin-mode .btn-delete-product {
-        display: block; /* Hiện khi ở chế độ Admin */
-        flex-grow: 1;
+        display: block; 
+        flex-grow: 0.5;
     }
     .product.admin-mode .btn-delete-product:hover {
         background: #e53935;
@@ -368,10 +362,10 @@
         margin-right: 15px;
     }
     .detail-actions .btn-buy {
-        background: #667eea;
+        background: #00b4db;
         color: white;
     }
-    .detail-actions .btn-buy:hover { background: #556ee6; }
+    .detail-actions .btn-buy:hover { background: #0083b0; }
     .detail-actions .btn-back {
         background: #ccc;
         color: #333;
@@ -464,7 +458,7 @@
     .modal-content button {
         width: 100%;
         padding: 12px;
-        background: #667eea;
+        background: #00b4db;
         color: white;
         border: none;
         border-radius: 5px;
@@ -474,7 +468,7 @@
         transition: background 0.3s;
     }
     .modal-content button:hover {
-        background: #556ee6;
+        background: #0083b0;
     }
     .close-btn {
         position: absolute;
@@ -511,17 +505,6 @@
         margin-right: 15px;
         border-radius: 4px;
     }
-    .cart-item-info {
-        flex-grow: 1;
-    }
-    .cart-item-name {
-        font-weight: 600;
-        font-size: 15px;
-    }
-    .cart-item-price {
-        color: #ff5252;
-        font-size: 14px;
-    }
     .cart-item-remove {
         background: #f44336;
         color: white;
@@ -541,7 +524,7 @@
         font-size: 18px;
         font-weight: bold;
         padding-top: 15px;
-        border-top: 2px solid #667eea;
+        border-top: 2px solid #00b4db;
         margin-bottom: 20px;
     }
     .cart-total-section span:last-child {
@@ -600,7 +583,7 @@
 <body>
 
     <header>
-        <div class="logo" onclick="showHome()">WashMaster</div>
+        <div class="logo" onclick="showHome()">Sạch Thơm Ánh</div>
         <nav>
             <a href="#product-list">Sản Phẩm</a>
             <a href="#">Giới Thiệu</a>
@@ -632,13 +615,13 @@
 
     <div id="home-page">
         <section class="banner">
-            <h1>Công Nghệ Giặt Giũ Thông Minh Cho Gia Đình Hiện Đại</h1>
-            <p>Trải nghiệm máy giặt thế hệ mới: Giặt sạch hoàn hảo, tiết kiệm điện nước.</p>
-            <a href="#product-list" class="btn-shop-now">Khám phá ngay</a>
+            <h1>Bột Giặt Sạch Thơm Ánh</h1>
+            <p>Công thức đột phá: Đánh bay vết bẩn, giữ màu vải bền lâu, hương thơm tự nhiên. **Ánh cam kết chất lượng!**</p>
+            <a href="#product-list" class="btn-shop-now">Mua hàng ngay</a>
         </section>
 
         <main>
-            <h2 id="product-list-title">SẢN PHẨM MÁY GIẶT NỔI BẬT</h2>
+            <h2 id="product-list-title">SẢN PHẨM BỘT GIẶT CAO CẤP</h2>
             <div class="product-grid" id="product-list">
                 </div>
         </main>
@@ -673,7 +656,7 @@
     </div>
 
     <footer>
-        &copy; 2025 WashMaster. All rights reserved. Thiết kế bởi Gemini AI.
+        &copy; 2025 Sạch Thơm Ánh. All rights reserved. Thiết kế bởi Gemini AI.
     </footer>
 
     <div id="login-modal" class="modal" onclick="closeModalOnOutside(event, 'login-modal')">
@@ -764,19 +747,18 @@ const db = firebase.firestore();
 // ============================================================
 let cart = [];
 let currentProduct = null;
-let currentUser = null; // Sẽ được tải từ localStorage
+let currentUser = null; 
 let products = []; 
 
 const accounts = {
-    'admin@shop.com': { password: 'admin123', name: 'Admin', role: 'admin' },
-    'user@shop.com': { password: 'user123', name: 'User', role: 'user' }
+    'admin@shop.com': { password: 'admin123', name: 'Ánh Admin', role: 'admin' },
+    'user@shop.com': { password: 'user123', name: 'Khách hàng', role: 'user' }
 };
 
 // =========================================================
-// 2. HÀM QUẢN LÝ PHIÊN (FIX LỖI F5 ĐĂNG XUẤT VÀ ADMIN CHECK)
+// 2. HÀM QUẢN LÝ PHIÊN
 // =========================================================
 
-// Hàm quản lý hiển thị UI/Admin Controls
 function updateUIForUser(user) {
     if (user) {
         document.getElementById('login-btn').style.display = 'none';
@@ -796,11 +778,9 @@ function updateUIForUser(user) {
         document.getElementById('admin-controls').classList.remove('active');
         document.getElementById('user-dropdown').classList.remove('active');
     }
-    // Cần tải lại sản phẩm để cập nhật trạng thái nút Xóa (hiện/ẩn)
     loadProducts(); 
 }
 
-// 🔑 Đăng nhập (Lưu vào LocalStorage)
 function login() {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
@@ -819,7 +799,6 @@ function login() {
     
     currentUser = { email: email, name: account.name, role: account.role };
     
-    // 🔥 QUAN TRỌNG: Lưu trạng thái đăng nhập vào LocalStorage
     localStorage.setItem('currentUser', JSON.stringify(currentUser)); 
     
     closeModal('login-modal');
@@ -828,15 +807,13 @@ function login() {
     alert(`Đăng nhập thành công!\nChào mừng ${account.name}${account.role === 'admin' ? ' - Quản trị viên' : ''}!`);
 }
 
-// 🔑 Đăng xuất (Xóa khỏi LocalStorage)
 function logout() {
     currentUser = null;
-    localStorage.removeItem('currentUser'); // 🔥 QUAN TRỌNG: Xóa trạng thái đăng nhập
+    localStorage.removeItem('currentUser'); 
     updateUIForUser(currentUser);
     alert('Đã đăng xuất thành công!');
 }
 
-// 🔑 Khôi phục phiên làm việc khi tải lại trang
 function restoreSession() {
     const userJson = localStorage.getItem('currentUser');
     if (userJson) {
@@ -849,7 +826,7 @@ function restoreSession() {
 
 
 // =========================================================
-// 3. CHỨC NĂNG LẤY VÀ HIỂN THỊ SẢN PHẨM (Đảm bảo lấy Document ID)
+// 3. CHỨC NĂNG LẤY VÀ HIỂN THỊ SẢN PHẨM (FIX LỖI XEM CHI TIẾT)
 // =========================================================
 
 async function loadProducts() {
@@ -858,7 +835,6 @@ async function loadProducts() {
         const snapshot = await productsRef.get();
         
         products = snapshot.docs.map(doc => ({
-            // Đảm bảo lấy ID CHUỖI (doc.id) của Firestore để xóa
             id: doc.id, 
             ...doc.data()
         }));
@@ -869,39 +845,42 @@ async function loadProducts() {
     }
 }
 
-// Hiển thị sản phẩm
+// Hiển thị sản phẩm (Đã sửa lại logic click để fix lỗi xem chi tiết)
 function displayProducts() {
     const productList = document.getElementById('product-list');
     const isAdmin = currentUser && currentUser.role === 'admin';
     
-    productList.innerHTML = products.map(product => `
-        <div class="product ${isAdmin ? 'admin-mode' : ''}" 
-             onclick="${isAdmin ? '' : `showProductDetail('${product.id}')`}"> 
-            
-            <div class="product-image-container">
-                <img src="${product.image}" alt="${product.name}">
-            </div>
-            <div class="product-content">
-                <h3>${product.name}</h3>
-                <p class="product-price">${product.price.toLocaleString('vi-VN')}₫</p> 
-                <div class="product-actions">
-                    <button class="view-detail" onclick="event.stopPropagation(); showProductDetail('${product.id}')">
-                        Xem chi tiết
-                    </button>
-                    <button class="btn-delete-product" onclick="event.stopPropagation(); deleteProduct('${product.id}')">
-                        🗑️ Xóa
-                    </button>
+    productList.innerHTML = products.map(product => {
+        // Loại bỏ onclick trên thẻ div.product để fix lỗi xung đột
+        return `
+            <div class="product ${isAdmin ? 'admin-mode' : ''}"> 
+                <div class="product-image-container">
+                    <img src="${product.image}" alt="${product.name}">
+                </div>
+                <div class="product-content">
+                    <h3>${product.name}</h3>
+                    <p class="product-price">${product.price.toLocaleString('vi-VN')}₫</p> 
+                    <div class="product-actions">
+                        <button class="view-detail" onclick="showProductDetail('${product.id}')">
+                            Xem chi tiết
+                        </button>
+                        <button class="btn-delete-product" onclick="deleteProduct('${product.id}')">
+                            🗑️ Xóa
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Hiển thị chi tiết sản phẩm
 function showProductDetail(productId) {
-    // FIX LỖI: Tìm sản phẩm dựa trên Document ID (chuỗi)
     currentProduct = products.find(p => p.id === productId); 
-    if (!currentProduct) return;
+    if (!currentProduct) {
+        alert('Không tìm thấy chi tiết sản phẩm này!');
+        return;
+    }
     
     document.getElementById('home-page').style.display = 'none';
     document.getElementById('detail-page').style.display = 'block';
@@ -920,82 +899,7 @@ function showProductDetail(productId) {
 
 
 // =========================================================
-// 4. CHỨC NĂNG THÊM SẢN PHẨM
-// =========================================================
-
-async function addProduct() {
-    const name = document.getElementById('product-name').value.trim();
-    const price = parseInt(document.getElementById('product-price').value);
-    const image = document.getElementById('product-image').value.trim();
-    const desc = document.getElementById('product-desc').value.trim();
-    const specsText = document.getElementById('product-specs').value.trim();
-    
-    if (!name || !price || !image || !desc || !specsText) {
-        alert('Vui lòng điền đầy đủ thông tin!');
-        return;
-    }
-    
-    const specs = specsText.split('\n').filter(s => s.trim());
-    
-    const newProductData = {
-        name: name,
-        price: price,
-        image: image,
-        description: desc,
-        specs: specs,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(), 
-        id: Date.now() 
-    };
-    
-    try {
-        await db.collection('products').add(newProductData);
-        
-        closeModal('add-product-modal');
-        alert(`✅ Đã thêm sản phẩm thành công!`);
-        
-        loadProducts();
-    } catch (error) {
-        console.error("Lỗi khi thêm sản phẩm:", error);
-        alert('Lỗi: Không thể thêm sản phẩm.');
-    }
-}
-
-
-// =========================================================
-// 5. CHỨC NĂNG XÓA SẢN PHẨM (FIX LỖI ADMIN CHECK VÀ LOG CHI TIẾT)
-// =========================================================
-
-async function deleteProduct(productId) {
-    // Kiểm tra quyền Admin đã được khôi phục từ localStorage
-    if (!currentUser || currentUser.role !== 'admin') {
-        alert('❌ Bạn cần quyền Admin để xóa sản phẩm!');
-        return;
-    }
-
-    if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
-        try {
-            console.log("ID đang cố gắng xóa:", productId); 
-            
-            // 🔥 Lệnh xóa bằng Document ID (chuỗi)
-            await db.collection('products').doc(productId).delete();
-            
-            alert('✅ Đã xóa sản phẩm thành công!');
-            loadProducts();
-        } catch (error) {
-            console.error("🔴 LỖI XÓA FIREBASE:", error);
-            // Dù đã xác định Rules đúng, vẫn để cảnh báo nếu Firebase trả về lỗi
-            if (error.code === 'permission-denied') {
-                alert('🔴 LỖI: Quyền truy cập bị từ chối. Vui lòng kiểm tra và PUBLISH Rules trên Firebase Console.');
-            } else {
-                alert(`LỖI XÓA KHÁC: ${error.message}. Vui lòng xem Console (F12) để biết chi tiết.`);
-            }
-        }
-    }
-}
-
-
-// =========================================================
-// 6. CÁC CHỨC NĂNG KHÁC 
+// 4. CHỨC NĂNG THÊM, XÓA, GIỎ HÀNG (Giữ nguyên logic đã sửa)
 // =========================================================
 
 function showHome() {
@@ -1040,6 +944,62 @@ function previewImage(event) {
             document.getElementById('product-image').value = e.target.result;
         };
         reader.readAsDataURL(file);
+    }
+}
+
+async function addProduct() {
+    const name = document.getElementById('product-name').value.trim();
+    const price = parseInt(document.getElementById('product-price').value);
+    const image = document.getElementById('product-image').value.trim();
+    const desc = document.getElementById('product-desc').value.trim();
+    const specsText = document.getElementById('product-specs').value.trim();
+    
+    if (!name || !price || !image || !desc || !specsText) {
+        alert('Vui lòng điền đầy đủ thông tin!');
+        return;
+    }
+    
+    const specs = specsText.split('\n').filter(s => s.trim());
+    
+    const newProductData = {
+        name: name,
+        price: price,
+        image: image,
+        description: desc,
+        specs: specs,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(), 
+        id: Date.now() 
+    };
+    
+    try {
+        await db.collection('products').add(newProductData);
+        
+        closeModal('add-product-modal');
+        alert(`✅ Đã thêm sản phẩm thành công!`);
+        
+        loadProducts();
+    } catch (error) {
+        console.error("Lỗi khi thêm sản phẩm:", error);
+        alert('Lỗi: Không thể thêm sản phẩm.');
+    }
+}
+
+async function deleteProduct(productId) {
+    if (!currentUser || currentUser.role !== 'admin') {
+        alert('❌ Bạn cần quyền Admin để xóa sản phẩm!');
+        return;
+    }
+
+    if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
+        try {
+            await db.collection('products').doc(productId).delete();
+            
+            alert('✅ Đã xóa sản phẩm thành công!');
+            loadProducts();
+        } catch (error) {
+            console.error("🔴 LỖI XÓA FIREBASE:", error);
+            alert(`LỖI XÓA: ${error.message}. Vui lòng kiểm tra Firebase Rules.`);
+        }
     }
 }
 
@@ -1165,9 +1125,7 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// 🔥 GỌI HÀM KHÔI PHỤC PHIÊN LÀM VIỆC KHI TRANG TẢI XONG
 restoreSession(); 
-// loadProducts() và updateUI được gọi trong restoreSession()
 updateCartCount();
 
 </script>
