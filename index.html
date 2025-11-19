@@ -919,14 +919,15 @@ function displayProducts() {
                 <h3>${product.name}</h3>
                 <p class="product-price">${product.price.toLocaleString('vi-VN')}₫</p>
                 <div class="product-actions">
-                    // FIX LỖI 2: Thêm dấu nháy đơn ' ' quanh ID
-                    <button class="view-detail" onclick="event.stopPropagation(); showProductDetail('${product.id}')">
-                        Xem chi tiết
-                    </button>
-                    // FIX LỖI 3: Thêm dấu nháy đơn ' ' quanh ID
-                    <button class="btn-delete-product" onclick="event.stopPropagation(); deleteProduct('${product.id}')">
-                        🗑️ Xóa
-                    </button>
+    // ✅ FIX LỖI 2: Đã thêm dấu nháy đơn ' '
+    <button class="view-detail" onclick="event.stopPropagation(); showProductDetail('${product.id}')">
+        Xem chi tiết
+    </button>
+    // ✅ FIX LỖI 3: Đã thêm dấu nháy đơn ' '
+    <button class="btn-delete-product" onclick="event.stopPropagation(); deleteProduct('${product.id}')">
+        🗑️ Xóa
+    </button>
+</div>
                 </div>
             </div>
         </div>
