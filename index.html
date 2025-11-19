@@ -507,7 +507,7 @@ const db = firebase.firestore();
 // ============================================================
 let cart = [];
 let currentProduct = null;
-let currentUser = null;
+let currentUser = null; // Sẽ được tải từ localStorage
 let products = []; 
 
 const accounts = {
@@ -516,7 +516,84 @@ const accounts = {
 };
 
 // =========================================================
-// 2. CHỨC NĂNG LẤY VÀ HIỂN THỊ SẢN PHẨM
+// 2. HÀM QUẢN LÝ PHIÊN (FIX LỖI F5 ĐĂNG XUẤT VÀ ADMIN CHECK)
+// =========================================================
+
+// Hàm quản lý hiển thị UI/Admin Controls
+function updateUIForUser(user) {
+    if (user) {
+        document.getElementById('login-btn').style.display = 'none';
+        document.getElementById('user-info').style.display = 'flex';
+        document.getElementById('user-initial').textContent = user.name.charAt(0);
+        document.getElementById('user-name-display').textContent = user.name;
+        document.getElementById('user-role-display').textContent = user.role === 'admin' ? 'Quản trị viên' : 'Người dùng';
+        
+        if (user.role === 'admin') {
+            // Hiển thị nút Admin
+            document.getElementById('admin-controls').classList.add('active');
+        } else {
+            document.getElementById('admin-controls').classList.remove('active');
+        }
+    } else {
+        document.getElementById('login-btn').style.display = 'block';
+        document.getElementById('user-info').style.display = 'none';
+        document.getElementById('admin-controls').classList.remove('active');
+        document.getElementById('user-dropdown').classList.remove('active');
+    }
+    // Cần tải lại sản phẩm để cập nhật trạng thái nút Xóa (hiện/ẩn)
+    loadProducts(); 
+}
+
+// 🔑 Đăng nhập (Lưu vào LocalStorage)
+function login() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    
+    if (!email || !password) {
+        alert('Vui lòng nhập đầy đủ email và mật khẩu!');
+        return;
+    }
+    
+    const account = accounts[email];
+    
+    if (!account || account.password !== password) {
+        alert('Email hoặc mật khẩu không đúng!');
+        return;
+    }
+    
+    currentUser = { email: email, name: account.name, role: account.role };
+    
+    // 🔥 QUAN TRỌNG: Lưu trạng thái đăng nhập vào LocalStorage
+    localStorage.setItem('currentUser', JSON.stringify(currentUser)); 
+    
+    closeModal('login-modal');
+    updateUIForUser(currentUser);
+    
+    alert(`Đăng nhập thành công!\nChào mừng ${account.name}${account.role === 'admin' ? ' - Quản trị viên' : ''}!`);
+}
+
+// 🔑 Đăng xuất (Xóa khỏi LocalStorage)
+function logout() {
+    currentUser = null;
+    localStorage.removeItem('currentUser'); // 🔥 QUAN TRỌNG: Xóa trạng thái đăng nhập
+    updateUIForUser(currentUser);
+    alert('Đã đăng xuất thành công!');
+}
+
+// 🔑 Khôi phục phiên làm việc khi tải lại trang
+function restoreSession() {
+    const userJson = localStorage.getItem('currentUser');
+    if (userJson) {
+        currentUser = JSON.parse(userJson);
+        updateUIForUser(currentUser);
+    } else {
+        updateUIForUser(null);
+    }
+}
+
+
+// =========================================================
+// 3. CHỨC NĂNG LẤY VÀ HIỂN THỊ SẢN PHẨM (Đảm bảo lấy Document ID)
 // =========================================================
 
 async function loadProducts() {
@@ -525,6 +602,7 @@ async function loadProducts() {
         const snapshot = await productsRef.get();
         
         products = snapshot.docs.map(doc => ({
+            // Đảm bảo lấy ID CHUỖI (doc.id) của Firestore để xóa
             id: doc.id, 
             ...doc.data()
         }));
@@ -535,9 +613,10 @@ async function loadProducts() {
     }
 }
 
-// Hiển thị sản phẩm (ĐÃ FIX LỖI CÚ PHÁP ONCLICK VÀ GIÁ)
+// Hiển thị sản phẩm
 function displayProducts() {
     const productList = document.getElementById('product-list');
+    // Lấy trạng thái admin từ biến currentUser
     const isAdmin = currentUser && currentUser.role === 'admin';
     
     productList.innerHTML = products.map(product => `
@@ -563,9 +642,10 @@ function displayProducts() {
     `).join('');
 }
 
-// Hiển thị chi tiết sản phẩm (ĐÃ FIX LỖI NẶNG: Xử lý mảng 'specs' an toàn)
+// Hiển thị chi tiết sản phẩm
 function showProductDetail(productId) {
-    currentProduct = products.find(p => p.id == productId); 
+    // FIX LỖI: Tìm sản phẩm dựa trên Document ID (chuỗi)
+    currentProduct = products.find(p => p.id === productId); 
     if (!currentProduct) return;
     
     document.getElementById('home-page').style.display = 'none';
@@ -577,7 +657,6 @@ function showProductDetail(productId) {
     document.getElementById('detail-desc').textContent = currentProduct.description;
     
     const specsList = document.getElementById('detail-specs');
-    // FIX LỖI: Đảm bảo specs là mảng để tránh lỗi .map is not a function
     const specsArray = Array.isArray(currentProduct.specs) ? currentProduct.specs : [];
     specsList.innerHTML = specsArray.map(spec => `<li>• ${spec}</li>`).join('');
     
@@ -586,7 +665,7 @@ function showProductDetail(productId) {
 
 
 // =========================================================
-// 3. CHỨC NĂNG THÊM SẢN PHẨM
+// 4. CHỨC NĂNG THÊM SẢN PHẨM (Không đổi)
 // =========================================================
 
 async function addProduct() {
@@ -610,10 +689,12 @@ async function addProduct() {
         description: desc,
         specs: specs,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(), 
+        // id: Date.now() - Giữ lại field này nếu bạn dùng nó để sắp xếp
         id: Date.now() 
     };
     
     try {
+        // Firebase sẽ tự tạo Document ID
         await db.collection('products').add(newProductData);
         
         closeModal('add-product-modal');
@@ -628,11 +709,11 @@ async function addProduct() {
 
 
 // =========================================================
+// 5. CHỨC NĂNG XÓA SẢN PHẨM (FIX LỖI ADMIN CHECK VÀ LOG CHI TIẾT)
 // =========================================================
-// =========================================================
-// 4. CHỨC NĂNG XÓA SẢN PHẨM (ĐÃ TỐI ƯU LOG QUÁ TRÌNH)
-// =========================================================
+
 async function deleteProduct(productId) {
+    // Kiểm tra quyền Admin đã được khôi phục từ localStorage
     if (!currentUser || currentUser.role !== 'admin') {
         alert('❌ Bạn cần quyền Admin để xóa sản phẩm!');
         return;
@@ -640,27 +721,21 @@ async function deleteProduct(productId) {
 
     if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
         try {
-            // Log bước 1: Xác nhận Admin và ID
-            console.log("--- BƯỚC 1: BẮT ĐẦU XÓA ---");
-            console.log("ID nhận được từ nút Xóa:", productId); 
+            console.log("--- BẮT ĐẦU XÓA ---");
+            console.log("ID nhận được (Document ID):", productId); 
             
-            // Lệnh xóa sản phẩm
+            // 🔥 Lệnh xóa bằng Document ID (chuỗi)
             await db.collection('products').doc(productId).delete();
             
-            // Log bước 2: Thành công
-            console.log("--- BƯỚC 2: XÓA THÀNH CÔNG ---");
+            console.log("--- XÓA THÀNH CÔNG ---");
             alert('✅ Đã xóa sản phẩm thành công!');
             loadProducts();
         } catch (error) {
-            // Log bước 3: Báo lỗi chi tiết
-            console.error("--- BƯỚC 3: XÓA THẤT BẠI ---");
+            console.error("--- XÓA THẤT BẠI ---");
             console.error("LỖI ĐẦY ĐỦ TỪ FIREBASE:", error);
             
             if (error.code === 'permission-denied') {
-                alert('🔴 LỖI: Quyền truy cập bị từ chối. Vui lòng kiểm tra và PUBLISH Rules trên Firebase Console.');
-            } else if (error.code === 'not-found') {
-                 // Lỗi này xảy ra khi ID đúng nhưng tài liệu đã bị xóa hoặc ID là sai
-                 alert('⚠️ LỖI: Không tìm thấy sản phẩm này trong database.');
+                alert('🔴 LỖI: Quyền truy cập bị từ chối. Vui lòng **kiểm tra và PUBLISH Rules** trên Firebase Console.');
             } else {
                 alert(`LỖI XÓA KHÁC: ${error.message}. Vui lòng xem Console (F12) để biết chi tiết.`);
             }
@@ -668,60 +743,15 @@ async function deleteProduct(productId) {
     }
 }
 
+
 // =========================================================
-// 5. CÁC CHỨC NĂNG KHÁC
+// 6. CÁC CHỨC NĂNG KHÁC (Đã giữ nguyên)
 // =========================================================
 
 function showHome() {
     document.getElementById('home-page').style.display = 'block';
     document.getElementById('detail-page').style.display = 'none';
     window.scrollTo(0, 0);
-}
-
-function login() {
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    
-    if (!email || !password) {
-        alert('Vui lòng nhập đầy đủ email và mật khẩu!');
-        return;
-    }
-    
-    const account = accounts[email];
-    
-    if (!account || account.password !== password) {
-        alert('Email hoặc mật khẩu không đúng!');
-        return;
-    }
-    
-    currentUser = { email: email, name: account.name, role: account.role };
-    
-    // Cập nhật giao diện
-    document.getElementById('login-btn').style.display = 'none';
-    document.getElementById('user-info').style.display = 'flex';
-    document.getElementById('user-initial').textContent = account.name.charAt(0);
-    document.getElementById('user-name-display').textContent = account.name;
-    document.getElementById('user-role-display').textContent = account.role === 'admin' ? 'Quản trị viên' : 'Người dùng';
-    
-    if (account.role === 'admin') {
-        document.getElementById('admin-controls').classList.add('active');
-    }
-    
-    closeModal('login-modal');
-    loadProducts();
-    
-    alert(`Đăng nhập thành công!\nChào mừng ${account.name}${account.role === 'admin' ? ' - Quản trị viên' : ''}!`);
-}
-
-function logout() {
-    currentUser = null;
-    document.getElementById('login-btn').style.display = 'block';
-    document.getElementById('user-info').style.display = 'none';
-    document.getElementById('admin-controls').classList.remove('active');
-    document.getElementById('user-dropdown').classList.remove('active');
-    
-    loadProducts();
-    alert('Đã đăng xuất thành công!');
 }
 
 function toggleUserMenu() {
@@ -821,7 +851,6 @@ function removeFromCart(index) {
     showCart();
 }
 
-// Thanh toán (ĐÃ SỬA: Lưu đơn hàng vào Firestore)
 async function checkout() {
     if (cart.length === 0) {
         alert('Giỏ hàng của bạn đang trống!');
@@ -886,8 +915,11 @@ document.addEventListener('click', function(event) {
     }
 });
 
-loadProducts();
+// 🔥 GỌI HÀM KHÔI PHỤC PHIÊN LÀM VIỆC KHI TRANG TẢI XONG
+restoreSession(); 
+// loadProducts() được gọi trong restoreSession() -> updateUIForUser()
 updateCartCount();
+
 </script>
 </body>
 </html>
