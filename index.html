@@ -629,9 +629,9 @@ async function addProduct() {
 
 // =========================================================
 // =========================================================
-// 4. CHỨC NĂNG XÓA SẢN PHẨM (Tối ưu hóa báo lỗi chi tiết)
 // =========================================================
-
+// 4. CHỨC NĂNG XÓA SẢN PHẨM (ĐÃ TỐI ƯU LOG QUÁ TRÌNH)
+// =========================================================
 async function deleteProduct(productId) {
     if (!currentUser || currentUser.role !== 'admin') {
         alert('❌ Bạn cần quyền Admin để xóa sản phẩm!');
@@ -640,27 +640,33 @@ async function deleteProduct(productId) {
 
     if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
         try {
-            // Log để xác nhận hàm đã chạy
-            console.log("Đang cố gắng xóa sản phẩm có ID:", productId);
+            // Log bước 1: Xác nhận Admin và ID
+            console.log("--- BƯỚC 1: BẮT ĐẦU XÓA ---");
+            console.log("ID nhận được từ nút Xóa:", productId); 
             
             // Lệnh xóa sản phẩm
             await db.collection('products').doc(productId).delete();
             
+            // Log bước 2: Thành công
+            console.log("--- BƯỚC 2: XÓA THÀNH CÔNG ---");
             alert('✅ Đã xóa sản phẩm thành công!');
             loadProducts();
         } catch (error) {
-            // Báo lỗi chi tiết từ Firebase ra console và alert
-            console.error("LỖI THAO TÁC FIREBASE:", error);
+            // Log bước 3: Báo lỗi chi tiết
+            console.error("--- BƯỚC 3: XÓA THẤT BẠI ---");
+            console.error("LỖI ĐẦY ĐỦ TỪ FIREBASE:", error);
             
             if (error.code === 'permission-denied') {
-                alert('🔴 LỖI FIREBASE RULES: Việc xóa thất bại. Vui lòng kiểm tra và PUBLISH Rules trên Firebase Console.');
+                alert('🔴 LỖI: Quyền truy cập bị từ chối. Vui lòng kiểm tra và PUBLISH Rules trên Firebase Console.');
+            } else if (error.code === 'not-found') {
+                 // Lỗi này xảy ra khi ID đúng nhưng tài liệu đã bị xóa hoặc ID là sai
+                 alert('⚠️ LỖI: Không tìm thấy sản phẩm này trong database.');
             } else {
-                alert(`LỖI XÓA: ${error.message}. Vui lòng xem Console (F12) để biết chi tiết.`);
+                alert(`LỖI XÓA KHÁC: ${error.message}. Vui lòng xem Console (F12) để biết chi tiết.`);
             }
         }
     }
 }
-
 
 // =========================================================
 // 5. CÁC CHỨC NĂNG KHÁC
